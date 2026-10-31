@@ -1,0 +1,32 @@
+# Example registry. Replace with your real models and review process.
+models:
+  - id: gpt-4o-mini-eu
+    provider: azure-openai
+    version: "example"
+    region: westeurope
+    license: commercial
+    max_data_class: internal
+    environments: [dev, uat, prod]
+    status: approved
+    owner: ai-platform-team
+    review_date: "2026-10-31"
+  - id: local-llama-onprem
+    provider: ollama
+    version: "example"
+    region: on-prem
+    license: open-weights
+    max_data_class: confidential
+    environments: [dev, uat]
+    status: approved
+    owner: ai-platform-team
+    review_date: "2026-10-31"
+  - id: experimental-model
+    provider: other
+    version: "example"
+    region: unknown
+    license: unknown
+    max_data_class: public
+    environments: [dev]
+    status: pending
+    owner: unassigned
+    review_date: ""
