@@ -1,0 +1,74 @@
+# Example agent policy. Replace with your real agents, tools, and review process.
+# Denial reasons are implemented in app/agent_policy.py and described in docs/governing-rules.md.
+
+prohibited_purposes:
+  - social_scoring
+  - untargeted_biometric_scraping
+  - subliminal_manipulation
+  - emotion_recognition_workplace
+
+# GDPR Art. 6(1) categories. The caller declares one; this skeleton does not verify it.
+lawful_bases:
+  - consent
+  - contract
+  - legal_obligation
+  - vital_interests
+  - public_task
+  - legitimate_interests
+
+# Regions allowed for non-public data (GDPR Art. 44).
+allowed_regions:
+  - westeurope
+  - northeurope
+  - on-prem
+
+agents:
+  - id: support-agent
+    status: approved
+    purposes: [customer_support]
+    # run_code is listed so the code-execution deny still fires (ASI05). Do not remove
+    # that deny until a sandbox exists.
+    allowed_tools: [search_kb, draft_reply, write_memory, delete_record, run_code]
+    max_data_class: internal
+    environments: [dev, uat, prod]
+    max_steps: 5
+    allowed_peers: [billing-agent]
+    owner: ai-platform-team
+    review_date: "2026-10-31"
+  - id: experimental-agent
+    status: pending
+    purposes: [experiment]
+    allowed_tools: [search_kb]
+    max_data_class: public
+    environments: [dev]
+    max_steps: 2
+    allowed_peers: []
+    owner: unassigned
+    review_date: ""
+
+tools:
+  - id: search_kb
+    side_effect: read
+    max_data_class: internal
+    requires_human_approval: false
+    allows_code_execution: false
+  - id: draft_reply
+    side_effect: read
+    max_data_class: internal
+    requires_human_approval: false
+    allows_code_execution: false
+  - id: write_memory
+    side_effect: write
+    max_data_class: internal
+    requires_human_approval: true
+    allows_code_execution: false
+  - id: delete_record
+    side_effect: write
+    max_data_class: internal
+    requires_human_approval: true
+    allows_code_execution: false
+  - id: run_code
+    side_effect: execute
+    max_data_class: public
+    requires_human_approval: true
+    allows_code_execution: true
