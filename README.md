@@ -1,5 +1,7 @@
 # AI Governance Gateway
 
+[![CI](https://github.com/affanahmed373/ai-governance-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/affanahmed373/ai-governance-gateway/actions/workflows/ci.yml)
+
 Reference architecture and working skeleton for a **governed enterprise AI platform**: one controlled entry point for LLM and agent access, with approved models, guardrails, audit logging, and rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026.
 
 > Status: starter skeleton. The docs and control mapping are the main value; the code shows the pattern, not a finished product.
