@@ -14,6 +14,13 @@ Done when: a demo with two small agents shows one A2A call allowed and one block
 Proves: the gateway works on real traffic, not just tests.
 - [ ] Route `multi-cloud-retail-agent` LLM calls through the gateway (`/chat`) and show the audit log in the README.
 
+## 2b. Live demo (priority: high)
+Proves: the policy engine can be tried, not only read.
+- [ ] Add a `Dockerfile` (port 7860) and deploy to a Hugging Face Docker Space; no LLM key needed for the policy checks.
+- [ ] Open on the FastAPI `/docs` page with two ready example requests: one action allowed, one denied with the rule id from the control matrix.
+- [ ] "Try it" link and a screenshot of a denied request at the top of the README.
+Done when: a visitor sees an allow and a deny within one minute.
+
 ## 3. OpenTelemetry audit trail (priority: medium)
 Proves: OpenTelemetry, enterprise observability.
 - [ ] Emit each policy decision as an OpenTelemetry span with the rule id from the control matrix.
