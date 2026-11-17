@@ -19,6 +19,8 @@
 5. Output guardrails: PII leakage and policy checks.
 6. Audit record is written (no raw PII; hashes and metadata).
 
+`multi-cloud-retail-agent` uses this path when `LLM_PROVIDER=gateway`: every LLM `generate()` is `POST /v1/chat` with caller `cloth-shop-agent`. Decision: [ADR 0006](adr/0006-retail-agent-via-chat.md).
+
 ## Agent action flow
 
 `POST /v1/agent/act` applies the checks in [governing-rules.md](governing-rules.md) before the model policy and input guardrails above.

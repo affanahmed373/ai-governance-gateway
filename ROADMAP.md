@@ -17,7 +17,7 @@ Done when: a demo with two small agents shows one A2A call allowed and one block
 
 ## 2. Use it in front of a real agent (priority: high)
 Proves: the gateway works on real traffic, not just tests.
-- [ ] Route `multi-cloud-retail-agent` LLM calls through the gateway (`/chat`) and show the audit log in the README.
+- [x] Route `multi-cloud-retail-agent` LLM calls through the gateway (`/chat`) and show the audit log in the README.
 
 ## 2b. Live demo (priority: high)
 Proves: the policy engine can be tried, not only read.

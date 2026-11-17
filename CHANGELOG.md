@@ -11,6 +11,8 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ### Added
 
+- Cloth-shop LLM path: `multi-cloud-retail-agent` can set `LLM_PROVIDER=gateway` so every `generate()` is `POST /v1/chat`. The README shows the audit line (caller `cloth-shop-agent`, decision, prompt hash). See [ADR 0006](docs/adr/0006-retail-agent-via-chat.md).
+- `test_cloth_shop_chat_audit_log` for that chat audit record.
 - [docs/repo-guide.md](docs/repo-guide.md): a map of the folders, the path a call takes, and which files a change updates.
 - Project rule that a change is unfinished until tests are updated and the ruff and pytest gate passes, and until the changelog, README, owning docs, and any architecture decision record match the change.
 - [ADR 0005](docs/adr/0005-govern-a2a-with-agent-policy.md): A2A tasks use `check_agent_action`. A denial is `TASK_STATE_REJECTED` with the rule id.

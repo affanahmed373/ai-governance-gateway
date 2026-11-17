@@ -6,11 +6,13 @@ One controlled entry point for LLM and agent access. Every call is checked again
 
 > Status: working skeleton. Policy, guardrails, and A2A task governance run in this process. The model call is still a stub, and `human_approved` is a declared flag, not a verified token.
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: governed [A2A](https://a2a-protocol.org/latest/specification/) tasks.
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: cloth-shop LLM calls through `POST /v1/chat`.
 
 ## Showcase
 
 Two shops share this gateway. The spice invoice agent compares supplier bills, such as which vendor is cheaper for PG Tips. The clothing store assistant answers stock and policy questions and may ask the catalog agent to draft an Instagram caption. The catalog agent cannot open the spice invoices. Deleting an invoice, and publishing the caption, each wait for a person.
+
+The clothing-store assistant ([multi-cloud-retail-agent](https://github.com/affanahmed373/multi-cloud-retail-agent)) can send every LLM call here: set `LLM_PROVIDER=gateway` and point `GOVERNANCE_GATEWAY_URL` at this API.
 
 | Call | Task state | Rule |
 |---|---|---|
@@ -88,6 +90,36 @@ Agent cards: [http://127.0.0.1:8000/.well-known/agent-card.json](http://127.0.0.
 
 The shops themselves stay in their own repos. This gateway only decides whether a call may run. A direct price check is `POST /v1/agent/act` with `agent_id` `spice-invoice-agent`, tool `compare_prices`, and purpose `supplier_price_check`.
 
+### Cloth-shop chat audit log
+
+When the retail agent uses `LLM_PROVIDER=gateway`, each answer is `POST /v1/chat`. The gateway writes one JSON audit line. The prompt is hashed; the email is masked in the response, not stored.
+
+```bash
+curl -s http://127.0.0.1:8000/v1/chat -H "Content-Type: application/json" -d "{
+  \"model\": \"gpt-4o-mini-eu\",
+  \"prompt\": \"Do you ship the green waistcoat to Berlin? mail me at buyer@example.com\",
+  \"environment\": \"dev\",
+  \"data_class\": \"internal\",
+  \"caller\": \"cloth-shop-agent\"
+}"
+```
+
+Example audit line (logger `audit`):
+
+```json
+{
+  "request_id": "…",
+  "caller": "cloth-shop-agent",
+  "model": "gpt-4o-mini-eu",
+  "environment": "dev",
+  "data_class": "internal",
+  "decision": "allowed",
+  "prompt_sha256": "…"
+}
+```
+
+An unapproved model returns HTTP 403 and `decision` is `denied:model_not_approved`. The same check is `pytest tests/test_audit.py::test_cloth_shop_chat_audit_log`.
+
 ## Rules that govern the agent
 
 `POST /v1/agent/act` and `POST /v1/a2a` use the same checker. The rules are in [docs/governing-rules.md](docs/governing-rules.md). Each rule is mapped to a control, a test, and evidence in [docs/control-matrix.md](docs/control-matrix.md).
@@ -164,6 +196,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 - [ ] Terraform: private endpoints, Log Analytics, Defender for Cloud
 - [x] Agent/tool registration and policy enforcement (`POST /v1/agent/act`; rules in [docs/governing-rules.md](docs/governing-rules.md)). Approval tokens and a code sandbox are still open.
 - [x] A2A task governance (`POST /v1/a2a`; the cloth shop may ask its catalog agent, and the catalog agent may not read spice invoices).
+- [x] Cloth-shop LLM calls through `POST /v1/chat` (`multi-cloud-retail-agent` with `LLM_PROVIDER=gateway`; audit log in the showcase above).
 
 ## Disclaimer
 

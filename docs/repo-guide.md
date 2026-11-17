@@ -2,7 +2,7 @@
 
 A map for coming back later. It says what each folder is for, how a call moves through the code, and which files the lifecycle expects you to touch.
 
-This repository is the gate. The spice shop and the clothing store are other repositories. They do not live here. Their names appear in `config/agent_policy.yaml` so the rules have a real story. A shop screen would call this API before it called a model. That call is not wired yet.
+This repository is the gate. The spice shop and the clothing store are other repositories. They do not live here. Their names appear in `config/agent_policy.yaml` so the rules have a real story. The clothing-store assistant (`multi-cloud-retail-agent`) can send every LLM call here: set `LLM_PROVIDER=gateway` and `GOVERNANCE_GATEWAY_URL` to this API. That hits `POST /v1/chat`.
 
 ## A call, file by file
 

@@ -6,9 +6,9 @@ Maps requirements to technical controls, tests and evidence. Status values: Plan
 |---|---|---|---|---|---|
 | C-01 | Lawful, minimised processing (GDPR Art. 5, 25) | PII masking before model call; data-class check | `test_pii_masking` | Audit logs, policy config | Partial |
 | C-02 | Security of processing (GDPR Art. 32) | Entra ID auth, Key Vault, private endpoints, TLS | Infra review, IaC plan | Terraform plan, access logs | Planned |
-| C-03 | Records of processing / accountability (GDPR Art. 5(2), 30) | Structured audit log per request; raw prompt is not stored | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target` | Audit logs | Partial |
+| C-03 | Records of processing / accountability (GDPR Art. 5(2), 30) | Structured audit log per request; raw prompt is not stored | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log` | Audit logs | Partial |
 | C-04 | Human oversight (EU AI Act Art. 14) | High-impact agent tools require `human_approved` | `test_human_approval_required` | Audit logs, `config/agent_policy.yaml` | Partial |
-| C-05 | Logging and traceability (EU AI Act Art. 12) | Request IDs, model, agent, tool, purpose, and policy decision logged | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target` | Audit logs | Partial |
+| C-05 | Logging and traceability (EU AI Act Art. 12) | Request IDs, model, agent, tool, purpose, and policy decision logged | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log` | Audit logs | Partial |
 | C-06 | Robustness and cybersecurity (EU AI Act Art. 15) | Red-team suite in CI, rate limits | `test_prompt_injection_*` | CI reports | Partial |
 | C-07 | Prompt injection (OWASP LLM01) | Input heuristics, tool allow-list, content shields | `test_prompt_injection_*` | CI reports | Partial |
 | C-08 | Sensitive information disclosure (OWASP LLM02) | PII masking in/out, output filter | `test_pii_masking` | CI reports | Partial |
