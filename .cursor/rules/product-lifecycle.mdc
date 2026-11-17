@@ -1,0 +1,56 @@
+---
+description: On every change, update tests, run them, and refresh the changelog, README, and docs that would otherwise be stale.
+alwaysApply: true
+---
+
+# Product lifecycle
+
+A code or behavior change is incomplete until tests cover it, the suite passes, and the records below match it. Skip a file only when the change does not make that file wrong.
+
+## Tests
+
+Add or update a test that fails if the new behavior regresses. Put it next to the existing tests for that path (`tests/test_a2a.py`, `tests/test_agent_policy.py`, `tests/test_policy.py`, `tests/test_guardrails.py`, `tests/test_audit.py`). When the test is evidence for a control, name it in `docs/control-matrix.md`.
+
+Run the CI gate and finish only after both succeed:
+
+```bash
+python -m ruff check .
+python -m pytest -q
+```
+
+## Changelog
+
+Add the change under `## [Unreleased]` in `CHANGELOG.md`. Use `Added`, `Changed`, `Fixed`, or `Removed`. Write the user-visible outcome, not a file list. Do not mint a version number; versions are cut only when a release is tagged.
+
+```markdown
+## [Unreleased]
+
+### Added
+
+- A2A `SendMessage` on `POST /v1/a2a`. A denied task is `TASK_STATE_REJECTED` with the rule id.
+```
+
+## README
+
+Update `README.md` when a reviewer would see or try the change: the status line, the showcase, request examples, the repo layout table, or a roadmap checkbox. Keep showcase examples runnable against the current API.
+
+## Relevant docs
+
+Update the owner of the behavior, and the control matrix when a test or evidence row changes.
+
+| Change | Update |
+|---|---|
+| Deny reason, check order, or declared field | `docs/governing-rules.md` |
+| Control, test, or evidence | `docs/control-matrix.md` |
+| Request path or component | `docs/architecture.md` and `docs/repo-guide.md` |
+| Folder or file added or renamed | `docs/repo-guide.md` |
+| Threat or mitigation | `docs/threat-model.md` |
+| Model approval or retirement | `docs/model-onboarding.md` |
+| Roadmap item finished | Check it off in `ROADMAP.md` and in the README roadmap |
+| Architecture decision | Next file in `docs/adr/`, linked from `docs/architecture.md` |
+
+## ADR
+
+Write an ADR when the change picks an approach that would be costly to reverse, or when another approach was reasonable. Prod promotion already requires one. Number the file after the highest `docs/adr/NNNN-*.md`, with Status, Date, Context, Decision, and Consequences. A bugfix, a test, or a wording change does not get an ADR.
+
+Leave an unrelated doc unchanged.
