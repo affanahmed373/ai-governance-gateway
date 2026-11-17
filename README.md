@@ -79,6 +79,7 @@ uvicorn app.main:app --reload
 
 ## Roadmap
 
+- [ ] Next.js (TypeScript) admin console on Vercel: approval queue with verified approval tokens, audit log viewer, policy playground (see [ROADMAP.md](ROADMAP.md))
 - [ ] Real Azure OpenAI client behind the router
 - [ ] Entra ID token validation (JWT) and role mapping
 - [ ] Langfuse tracing and per-team cost reports
