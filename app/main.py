@@ -3,9 +3,16 @@ import json
 import logging
 import uuid
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from app.a2a import (
+    build_agent_card,
+    build_gateway_card,
+    handle_a2a_request,
+    invalid_json_response,
+)
 from app.agent_policy import check_agent_action, load_agent_policy
 from app.guardrails import detect_prompt_injection, mask_pii
 from app.policy import check_model_access, load_registry
@@ -44,6 +51,7 @@ def write_audit(
     req: ChatRequest | AgentActionRequest,
     decision: str,
     rule: str | None = None,
+    caller_agent: str | None = None,
 ) -> dict:
     record = {
         "request_id": request_id,
@@ -59,8 +67,16 @@ def write_audit(
         record["tool"] = req.tool
         record["purpose"] = req.purpose
         record["rule"] = rule if rule is not None else decision
+        if req.target_agent is not None:
+            record["target_agent"] = req.target_agent
+    if caller_agent is not None:
+        record["caller_agent"] = caller_agent
     audit_log.info(json.dumps(record))
     return record
+
+
+def _a2a_endpoint(request: Request) -> str:
+    return f"{str(request.base_url).rstrip('/')}/v1/a2a"
 
 
 @app.get("/health")
@@ -124,3 +140,48 @@ def agent_act(req: AgentActionRequest) -> dict:
         "response": f"[stub] would call {req.model} for {req.agent_id} via {req.tool}",
         "masked_prompt": safe_prompt,
     }
+
+
+@app.get("/.well-known/agent-card.json")
+@app.get("/v1/a2a/agent-card.json")
+def a2a_gateway_card(request: Request) -> dict:
+    return build_gateway_card(agent_policy, _a2a_endpoint(request))
+
+
+@app.get("/v1/a2a/agents/{agent_id}/agent-card.json")
+def a2a_agent_card(agent_id: str, request: Request) -> dict:
+    card = build_agent_card(agent_id, agent_policy, _a2a_endpoint(request))
+    if card is None:
+        raise HTTPException(status_code=404, detail="agent_not_registered")
+    return card
+
+
+@app.post("/v1/a2a")
+async def a2a(request: Request) -> JSONResponse:
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        outcome = invalid_json_response()
+    else:
+        outcome = handle_a2a_request(body, agent_policy, registry)
+    audit = outcome["audit"]
+    if audit is not None:
+        recorded = AgentActionRequest(
+            agent_id=audit["caller_agent"],
+            tool=audit["tool"],
+            model=audit["model"],
+            prompt=audit["prompt"],
+            purpose=audit["purpose"],
+            environment=audit["environment"],
+            data_class=audit["data_class"],
+            caller=audit["caller"],
+            target_agent=audit["target_agent"],
+        )
+        write_audit(
+            audit["request_id"],
+            recorded,
+            audit["decision"],
+            rule=audit["rule"],
+            caller_agent=audit["caller_agent"],
+        )
+    return JSONResponse(outcome["response"], status_code=outcome["http_status"])

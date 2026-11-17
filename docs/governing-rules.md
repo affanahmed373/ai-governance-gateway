@@ -1,6 +1,6 @@
 # Governing rules for the agent
 
-Rules that bind an agent action through `POST /v1/agent/act`. This is a control mapping for the skeleton, not legal advice. Validate it with your own legal and security teams.
+Rules that bind an agent action through `POST /v1/agent/act`, and an A2A task through `POST /v1/a2a`. This is a control mapping for the skeleton, not legal advice. Validate it with your own legal and security teams.
 
 The gateway decides from fields the caller declares (`purpose`, `lawful_basis`, `human_approved`, `tool`, `target_agent`). It does not detect an undeclared prohibited purpose, and it does not verify a real approval token. Both stay out of this skeleton.
 
@@ -59,4 +59,20 @@ Source: [OWASP Top 10 for Agentic Applications for 2026](https://genai.owasp.org
 5. Step is inside the budget. A target agent is an allowed peer. Non-public data uses an allowed model region.
 6. The existing model policy, prompt-injection check, and PII mask then run.
 
-Policy denials return HTTP 403 with the reason above. The chat path is unchanged.
+Policy denials on `POST /v1/agent/act` return HTTP 403 with the reason above. The chat path is unchanged.
+
+## A2A tasks
+
+`POST /v1/a2a` accepts an [A2A](https://a2a-protocol.org/latest/specification/) JSON-RPC `SendMessage`. `params.tenant` is the target agent (`metadata.target_agent` is used when `tenant` is empty). The message text is the prompt. Governance fields travel on `params.metadata` and map onto `check_agent_action`:
+
+| Metadata field | Policy field |
+|---|---|
+| `caller_agent` | `agent_id` |
+| `tenant` or `target_agent` | `target_agent` |
+| `tool`, `model`, `purpose`, `lawful_basis`, `data_class`, `caller`, `human_approved`, `step`, `environment` | the same fields |
+
+The check order above still applies. A passed task is `TASK_STATE_COMPLETED`. A failed check is `TASK_STATE_REJECTED` with the rule id in `result.task.metadata.rule` and in the audit record. The HTTP status stays 200. The audit record stores `caller_agent`, `target_agent`, the decision, and a hash of the message text.
+
+`cloth-shop-agent` may call `cloth-catalog-agent`. `cloth-catalog-agent` has no peers, so its call to `spice-invoice-agent` is rejected with `target_agent_not_allowed`. The spice invoice agent likewise has no peers.
+
+Agent cards: `GET /.well-known/agent-card.json` for the gateway, and `GET /v1/a2a/agents/{agent_id}/agent-card.json` for one registered agent. The card's interface uses protocol binding `JSONRPC` and protocol version `1.0`.

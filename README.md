@@ -2,13 +2,95 @@
 
 [![CI](https://github.com/affanahmed373/ai-governance-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/affanahmed373/ai-governance-gateway/actions/workflows/ci.yml)
 
-Reference architecture and working skeleton for a **governed enterprise AI platform**: one controlled entry point for LLM and agent access, with approved models, guardrails, audit logging, and rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026.
+One controlled entry point for LLM and agent access. Every call is checked against an approved-model list and, for agents, against rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026. The audit log stores a hash of the prompt, not the prompt.
 
-> Status: starter skeleton. The docs and control mapping are the main value; the code shows the pattern, not a finished product.
+> Status: working skeleton. Policy, guardrails, and A2A task governance run in this process. The model call is still a stub, and `human_approved` is a declared flag, not a verified token.
+
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: governed [A2A](https://a2a-protocol.org/latest/specification/) tasks.
+
+## Showcase
+
+Two shops share this gateway. The spice invoice agent compares supplier bills, such as which vendor is cheaper for PG Tips. The clothing store assistant answers stock and policy questions and may ask the catalog agent to draft an Instagram caption. The catalog agent cannot open the spice invoices. Deleting an invoice, and publishing the caption, each wait for a person.
+
+| Call | Task state | Rule |
+|---|---|---|
+| `cloth-shop-agent` → `cloth-catalog-agent` | `TASK_STATE_COMPLETED` | `allowed` |
+| `cloth-catalog-agent` → `spice-invoice-agent` | `TASK_STATE_REJECTED` | `target_agent_not_allowed` |
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+pytest
+uvicorn app.main:app --reload
+```
+
+On Windows, activate with `.venv\Scripts\Activate.ps1`. The same check is `pytest tests/test_a2a.py::test_two_agents_one_allowed_one_blocked`.
+
+POST both bodies to `http://127.0.0.1:8000/v1/a2a`. The rule id is `result.task.metadata.rule`. The audit line includes `caller_agent`, `target_agent`, `decision`, and `prompt_sha256`.
+
+Allowed:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "SendMessage",
+  "params": {
+    "tenant": "cloth-catalog-agent",
+    "message": {
+      "messageId": "m-allow",
+      "role": "ROLE_USER",
+      "parts": [{ "text": "Draft an Instagram caption for the green waistcoat." }]
+    },
+    "metadata": {
+      "caller_agent": "cloth-shop-agent",
+      "tool": "draft_caption",
+      "model": "gpt-4o-mini-eu",
+      "purpose": "catalog_post",
+      "lawful_basis": "contract",
+      "environment": "prod",
+      "data_class": "internal",
+      "caller": "team-a"
+    }
+  }
+}
+```
+
+Blocked:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "2",
+  "method": "SendMessage",
+  "params": {
+    "tenant": "spice-invoice-agent",
+    "message": {
+      "messageId": "m-block",
+      "role": "ROLE_USER",
+      "parts": [{ "text": "Which vendor has the cheaper price for PG Tips tea bags?" }]
+    },
+    "metadata": {
+      "caller_agent": "cloth-catalog-agent",
+      "tool": "draft_caption",
+      "model": "gpt-4o-mini-eu",
+      "purpose": "catalog_post",
+      "lawful_basis": "contract",
+      "environment": "prod",
+      "data_class": "public",
+      "caller": "team-a"
+    }
+  }
+}
+```
+
+Agent cards: [http://127.0.0.1:8000/.well-known/agent-card.json](http://127.0.0.1:8000/.well-known/agent-card.json) for the gateway, and `/v1/a2a/agents/spice-invoice-agent/agent-card.json` for the spice shop. Interactive API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
+The shops themselves stay in their own repos. This gateway only decides whether a call may run. A direct price check is `POST /v1/agent/act` with `agent_id` `spice-invoice-agent`, tool `compare_prices`, and purpose `supplier_price_check`.
 
 ## Rules that govern the agent
 
-Agent actions go through `POST /v1/agent/act`. The gateway denies the call unless it meets the rules in [docs/governing-rules.md](docs/governing-rules.md). Each rule is mapped to a control, a test, and evidence in [docs/control-matrix.md](docs/control-matrix.md).
+`POST /v1/agent/act` and `POST /v1/a2a` use the same checker. The rules are in [docs/governing-rules.md](docs/governing-rules.md). Each rule is mapped to a control, a test, and evidence in [docs/control-matrix.md](docs/control-matrix.md).
 
 - **GDPR.** Purpose must be on the agent's allow-list. Non-public data needs a declared lawful basis. Special-category data is denied. A high-impact tool cannot run without human approval. Personal data stays in an allowed region. The audit log stores a hash of the prompt, not the prompt.
 - **EU AI Act.** A declared prohibited purpose is denied. A consequential tool call waits for human oversight. The response names the agent and the decision.
@@ -24,7 +106,7 @@ Enterprise teams need to use LLMs without each team re-solving security, privacy
 - **Approved model list**: provenance, license, region and data-class limits per model.
 - **Guardrails**: prompt-injection detection, PII masking, output checks.
 - **Audit and cost accountability**: structured logs per request (who, which model, which policy, what decision).
-- **Lifecycle gates**: Dev / UAT / Prod promotion rules.
+- **Lifecycle gates**: Dev / UAT / Prod promotion rules. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 - **Traceable compliance**: the agent rules above, plus the OWASP LLM Top 10, mapped to controls, tests, and evidence.
 
 ## Architecture (high level)
@@ -48,12 +130,16 @@ Client / Agent
 [ Azure OpenAI | other approved models ]
 ```
 
+A2A tasks enter at `POST /v1/a2a` and join that flow at the policy check. `params.tenant` is the target agent. `params.metadata.caller_agent` is the caller.
+
 See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](docs/azure-mapping.md).
 
 ## Repo layout
 
 | Path | Content |
 |---|---|
+| `docs/repo-guide.md` | What each folder does, how a call moves, and which files a change updates |
+| `CHANGELOG.md` | Product history, newest changes first |
 | `docs/architecture.md` | Components, data flow, environments |
 | `docs/governing-rules.md` | GDPR, EU AI Act, and OWASP Agentic Top 10 2026 rules for the agent |
 | `docs/azure-mapping.md` | Which Azure service implements which control |
@@ -63,19 +149,10 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `docs/adr/` | Architecture decision records |
 | `config/approved_models.yaml` | Approved model registry (example) |
 | `config/agent_policy.yaml` | Approved agents, tools, purposes, and step budget |
-| `app/` | FastAPI gateway skeleton |
-| `tests/` | Guardrail and policy tests |
+| `app/` | FastAPI gateway, including A2A `POST /v1/a2a` |
+| `tests/` | Guardrail, policy, and A2A tests |
 | `infra/azure/` | Terraform skeleton for Azure |
 | `.github/workflows/ci.yml` | Lint + tests as a release gate |
-
-## Quick start
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-pytest
-uvicorn app.main:app --reload
-```
 
 ## Roadmap
 
@@ -86,6 +163,7 @@ uvicorn app.main:app --reload
 - [ ] Red-team test suite (prompt injection, data leakage) in CI
 - [ ] Terraform: private endpoints, Log Analytics, Defender for Cloud
 - [x] Agent/tool registration and policy enforcement (`POST /v1/agent/act`; rules in [docs/governing-rules.md](docs/governing-rules.md)). Approval tokens and a code sandbox are still open.
+- [x] A2A task governance (`POST /v1/a2a`; the cloth shop may ask its catalog agent, and the catalog agent may not read spice invoices).
 
 ## Disclaimer
 

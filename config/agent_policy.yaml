@@ -23,22 +23,45 @@ allowed_regions:
   - on-prem
 
 agents:
-  - id: support-agent
+  # Spice shop invoices (spice-shop-invoice-agent): compare supplier prices.
+  # Invoices stay in this shop. run_code stays so the code-execution deny still fires.
+  - id: spice-invoice-agent
     status: approved
-    purposes: [customer_support]
-    # run_code is listed so the code-execution deny still fires (ASI05). Do not remove
-    # that deny until a sandbox exists.
-    allowed_tools: [search_kb, draft_reply, write_memory, delete_record, run_code]
+    purposes: [supplier_price_check]
+    allowed_tools: [search_invoices, compare_prices, remember_supplier, delete_invoice, run_code]
     max_data_class: internal
     environments: [dev, uat, prod]
     max_steps: 5
-    allowed_peers: [billing-agent]
-    owner: ai-platform-team
-    review_date: "2026-10-31"
+    allowed_peers: []
+    owner: spice-shop
+    review_date: "2026-11-17"
+  # Clothing store assistant (multi-cloud-retail-agent). May ask the catalog agent.
+  - id: cloth-shop-agent
+    status: approved
+    purposes: [customer_question, catalog_post]
+    allowed_tools: [check_inventory, lookup_policy, draft_caption, publish_catalog]
+    max_data_class: internal
+    environments: [dev, uat, prod]
+    max_steps: 5
+    allowed_peers: [cloth-catalog-agent]
+    owner: cloth-store
+    review_date: "2026-11-17"
+  # Clothing catalog studio (Cloth_store): draft a caption, publish only with a person.
+  # Cannot read spice invoices.
+  - id: cloth-catalog-agent
+    status: approved
+    purposes: [catalog_post]
+    allowed_tools: [draft_caption, publish_catalog]
+    max_data_class: public
+    environments: [dev, uat, prod]
+    max_steps: 3
+    allowed_peers: []
+    owner: cloth-store
+    review_date: "2026-11-17"
   - id: experimental-agent
     status: pending
     purposes: [experiment]
-    allowed_tools: [search_kb]
+    allowed_tools: [search_invoices]
     max_data_class: public
     environments: [dev]
     max_steps: 2
@@ -47,24 +70,44 @@ agents:
     review_date: ""
 
 tools:
-  - id: search_kb
+  - id: search_invoices
     side_effect: read
     max_data_class: internal
     requires_human_approval: false
     allows_code_execution: false
-  - id: draft_reply
+  - id: compare_prices
     side_effect: read
     max_data_class: internal
     requires_human_approval: false
     allows_code_execution: false
-  - id: write_memory
+  - id: remember_supplier
     side_effect: write
     max_data_class: internal
     requires_human_approval: true
     allows_code_execution: false
-  - id: delete_record
+  - id: delete_invoice
     side_effect: write
     max_data_class: internal
+    requires_human_approval: true
+    allows_code_execution: false
+  - id: check_inventory
+    side_effect: read
+    max_data_class: internal
+    requires_human_approval: false
+    allows_code_execution: false
+  - id: lookup_policy
+    side_effect: read
+    max_data_class: public
+    requires_human_approval: false
+    allows_code_execution: false
+  - id: draft_caption
+    side_effect: read
+    max_data_class: public
+    requires_human_approval: false
+    allows_code_execution: false
+  - id: publish_catalog
+    side_effect: write
+    max_data_class: public
     requires_human_approval: true
     allows_code_execution: false
   - id: run_code

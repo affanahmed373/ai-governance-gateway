@@ -13,11 +13,11 @@ client = TestClient(app)
 
 def decide(**overrides) -> tuple[bool, str]:
     args = {
-        "agent_id": "support-agent",
-        "tool_id": "search_kb",
+        "agent_id": "spice-invoice-agent",
+        "tool_id": "compare_prices",
         "environment": "prod",
         "data_class": "internal",
-        "purpose": "customer_support",
+        "purpose": "supplier_price_check",
         "lawful_basis": "contract",
         "human_approved": False,
         "step": 1,
@@ -41,7 +41,7 @@ def test_purpose_prohibited():
 
 
 def test_purpose_not_allowed():
-    ok, reason = decide(purpose="billing")
+    ok, reason = decide(purpose="catalog_post")
     assert not ok and reason == "purpose_not_allowed"
 
 
@@ -84,7 +84,7 @@ def test_tool_not_allowed():
 
 def test_tool_not_registered():
     custom = copy.deepcopy(policy)
-    custom["agents"]["support-agent"]["allowed_tools"] = ["ghost_tool"]
+    custom["agents"]["spice-invoice-agent"]["allowed_tools"] = ["ghost_tool"]
     ok, reason = decide(tool_id="ghost_tool", policy=custom)
     assert not ok and reason == "tool_not_registered"
 
@@ -95,14 +95,14 @@ def test_code_execution_denied():
 
 
 def test_human_approval_required():
-    ok, reason = decide(tool_id="delete_record")
+    ok, reason = decide(tool_id="delete_invoice")
     assert not ok and reason == "human_approval_required"
-    ok, reason = decide(tool_id="write_memory")
+    ok, reason = decide(tool_id="remember_supplier")
     assert not ok and reason == "human_approval_required"
 
 
 def test_human_approval_allows_high_impact_tool():
-    ok, reason = decide(tool_id="delete_record", human_approved=True)
+    ok, reason = decide(tool_id="delete_invoice", human_approved=True)
     assert ok and reason == "allowed"
 
 
@@ -114,12 +114,17 @@ def test_step_budget_exceeded():
 
 
 def test_target_agent_not_allowed():
-    ok, reason = decide(target_agent="rogue-agent")
+    ok, reason = decide(target_agent="cloth-catalog-agent")
     assert not ok and reason == "target_agent_not_allowed"
 
 
 def test_allowed_peer():
-    ok, reason = decide(target_agent="billing-agent")
+    ok, reason = decide(
+        agent_id="cloth-shop-agent",
+        tool_id="draft_caption",
+        purpose="catalog_post",
+        target_agent="cloth-catalog-agent",
+    )
     assert ok and reason == "allowed"
 
 
@@ -135,7 +140,7 @@ def test_agent_not_registered():
 
 def test_environment_not_allowed():
     custom = copy.deepcopy(policy)
-    custom["agents"]["support-agent"]["environments"] = ["dev"]
+    custom["agents"]["spice-invoice-agent"]["environments"] = ["dev"]
     ok, reason = decide(environment="prod", policy=custom)
     assert not ok and reason == "environment_not_allowed"
 
@@ -147,11 +152,11 @@ def test_region_not_allowed():
 
 def action_body(**overrides) -> dict:
     body = {
-        "agent_id": "support-agent",
-        "tool": "search_kb",
+        "agent_id": "spice-invoice-agent",
+        "tool": "compare_prices",
         "model": "gpt-4o-mini-eu",
-        "prompt": "Look up ticket 42",
-        "purpose": "customer_support",
+        "prompt": "Which vendor has the cheaper price for PG Tips tea bags?",
+        "purpose": "supplier_price_check",
         "lawful_basis": "contract",
         "environment": "prod",
         "data_class": "internal",
@@ -170,9 +175,9 @@ def test_allowed_agent_action_http():
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["agent_id"] == "support-agent"
+    assert body["agent_id"] == "spice-invoice-agent"
     assert body["decision"] == "allowed"
-    assert body["tool"] == "search_kb"
+    assert body["tool"] == "compare_prices"
     assert "[EMAIL]" in body["masked_prompt"]
     assert "a@b.com" not in body["masked_prompt"]
 
@@ -197,14 +202,14 @@ def test_agent_prompt_injection_http():
 
 def test_agent_audit_metadata_only(caplog):
     caplog.set_level(logging.INFO, logger="audit")
-    prompt = "contact secret@example.com about ticket 42"
+    prompt = "contact secret@example.com about the PG Tips invoice"
     response = client.post("/v1/agent/act", json=action_body(prompt=prompt))
     assert response.status_code == 200
     assert prompt not in caplog.text
     record = json.loads(caplog.records[-1].message)
-    assert record["agent_id"] == "support-agent"
-    assert record["tool"] == "search_kb"
-    assert record["purpose"] == "customer_support"
+    assert record["agent_id"] == "spice-invoice-agent"
+    assert record["tool"] == "compare_prices"
+    assert record["purpose"] == "supplier_price_check"
     assert record["rule"] == "allowed"
     assert record["decision"] == "allowed"
     assert "prompt_sha256" in record
