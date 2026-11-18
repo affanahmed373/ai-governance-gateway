@@ -21,6 +21,8 @@
 
 `multi-cloud-retail-agent` uses this path when `LLM_PROVIDER=gateway`: every LLM `generate()` is `POST /v1/chat` with caller `cloth-shop-agent`. Decision: [ADR 0006](adr/0006-retail-agent-via-chat.md).
 
+The public demo image listens on port 7860 and opens on `/docs` with allow/deny examples. It runs on Azure Container Apps with `min_replicas = 0`, pulls its image from `ghcr.io`, and sends stdout, including the audit JSON lines, to Log Analytics. Decision: [ADR 0008](adr/0008-azure-container-apps-demo.md), which supersedes the Hugging Face choice in ADR 0007.
+
 ## Agent action flow
 
 `POST /v1/agent/act` applies the checks in [governing-rules.md](governing-rules.md) before the model policy and input guardrails above.

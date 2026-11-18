@@ -8,7 +8,7 @@ Maps requirements to technical controls, tests and evidence. Status values: Plan
 | C-02 | Security of processing (GDPR Art. 32) | Entra ID auth, Key Vault, private endpoints, TLS | Infra review, IaC plan | Terraform plan, access logs | Planned |
 | C-03 | Records of processing / accountability (GDPR Art. 5(2), 30) | Structured audit log per request; raw prompt is not stored | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log` | Audit logs | Partial |
 | C-04 | Human oversight (EU AI Act Art. 14) | High-impact agent tools require `human_approved` | `test_human_approval_required` | Audit logs, `config/agent_policy.yaml` | Partial |
-| C-05 | Logging and traceability (EU AI Act Art. 12) | Request IDs, model, agent, tool, purpose, and policy decision logged | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log` | Audit logs | Partial |
+| C-05 | Logging and traceability (EU AI Act Art. 12) | Request IDs, model, agent, tool, purpose, and policy decision logged to stdout, collected by Log Analytics | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log`, `test_audit_lines_reach_stdout` | Log Analytics `ContainerAppConsoleLogs_CL` | Partial |
 | C-06 | Robustness and cybersecurity (EU AI Act Art. 15) | Red-team suite in CI, rate limits | `test_prompt_injection_*` | CI reports | Partial |
 | C-07 | Prompt injection (OWASP LLM01) | Input heuristics, tool allow-list, content shields | `test_prompt_injection_*` | CI reports | Partial |
 | C-08 | Sensitive information disclosure (OWASP LLM02) | PII masking in/out, output filter | `test_pii_masking` | CI reports | Partial |
@@ -29,7 +29,7 @@ Maps requirements to technical controls, tests and evidence. Status values: Plan
 | C-23 | Agentic supply chain (OWASP ASI04, 2026) | Agent and tool must be registered; agent must be approved | `test_unapproved_agent_blocked` | `config/agent_policy.yaml` | Implemented |
 | C-24 | Unexpected code execution (OWASP ASI05, 2026) | Code-execution tools denied | `test_code_execution_denied` | `config/agent_policy.yaml` | Implemented |
 | C-25 | Memory and context poisoning (OWASP ASI06, 2026) | Memory writes need approval; raw prompt is not logged | `test_human_approval_required`, `test_agent_audit_metadata_only` | Audit logs | Partial |
-| C-26 | Insecure inter-agent communication (OWASP ASI07, 2026) | Target agent must be an allowed peer; A2A tasks use the same check | `test_target_agent_not_allowed`, `test_two_agents_one_allowed_one_blocked` | `config/agent_policy.yaml` | Implemented |
+| C-26 | Insecure inter-agent communication (OWASP ASI07, 2026) | Target agent must be an allowed peer; A2A tasks use the same check | `test_target_agent_not_allowed`, `test_two_agents_one_allowed_one_blocked`, `test_docs_examples_allow_and_deny_agent_act` | `config/agent_policy.yaml`, `/docs` deny example | Implemented |
 | C-27 | Cascading failures (OWASP ASI08, 2026) | Step must stay inside the agent budget | `test_step_budget_exceeded` | `config/agent_policy.yaml` | Partial |
 | C-28 | Human-agent trust exploitation (OWASP ASI09, 2026) | High-impact tools require `human_approved` | `test_human_approval_allows_high_impact_tool` | Audit logs | Partial |
 | C-29 | Rogue agents (OWASP ASI10, 2026) | Unapproved agent denied | `test_unapproved_agent_blocked` | `config/agent_policy.yaml` | Implemented |

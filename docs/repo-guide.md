@@ -72,6 +72,19 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 | `docs/repo-guide.md` | This file. Update it when a folder or a step in the path is added or renamed. |
 | `.cursor/rules/product-lifecycle.mdc` | The instruction that a code change also updates tests, the changelog, the README, and the doc that owns the behavior. |
 
+### Demo hosting
+
+| Path | Purpose |
+|---|---|
+| `Dockerfile` | The demo image, port 7860. CI publishes it to `ghcr.io` after tests pass on `main`. |
+| `infra/azure/demo/` | Terraform for the public demo: one Container App, scale to zero, Log Analytics. |
+| `docs/azure-demo.md` | Deploy steps, new-version rollout, and the Log Analytics audit query. |
+| `requirements-runtime.txt` | Packages installed in that image (no pytest/ruff). |
+| `docs/hf-space.md` | Hugging Face steps, kept for a PRO account. Not the current host. |
+| `.env.example` | Template for the Azure `ARM_*` deploy credentials and the optional `HF_TOKEN` (copy to `.env`; never commit `.env`). |
+| `docs/images/denied-request.png` | Screenshot of a denied `/docs` Execute. |
+| `app/demo_examples.py` | Allow/deny bodies shown in Swagger. |
+
 ### Azure, later
 
 | Path | Purpose |
@@ -79,7 +92,7 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 | `infra/azure/main.tf` | A Terraform sketch: a resource group, Log Analytics, and a managed identity. It does not deploy the gateway. |
 | `infra/azure/variables.tf` | The names and location that sketch would use. |
 
-ADR 0003 says the API should one day run on Azure Container Apps and scale to zero. The admin screen should be a Next.js app on Vercel. Neither folder exists yet. `ROADMAP.md` items 2b and 2c are those pieces.
+ADR 0008 puts the public demo on Azure Container Apps with scale to zero, as ADR 0003 proposed. `infra/azure/main.tf` is the larger enterprise design (Premium registry, Key Vault) and is not applied. The admin screen should be a Next.js app on Vercel (`ROADMAP.md` item 2c).
 
 ## The lifecycle in one pass
 

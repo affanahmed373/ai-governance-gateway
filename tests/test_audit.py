@@ -1,11 +1,36 @@
 import json
 import logging
+import subprocess
+import sys
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 from app.main import app
 
 client = TestClient(app)
+
+
+def test_audit_lines_reach_stdout():
+    """Container log collectors (Log Analytics) only see what reaches stdout."""
+    script = (
+        "from fastapi.testclient import TestClient\n"
+        "from app.main import app\n"
+        "TestClient(app).post('/v1/chat', json={'model': 'gpt-4o-mini-eu', "
+        "'prompt': 'hi', 'caller': 'cloth-shop-agent'})\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=Path(__file__).resolve().parent.parent,
+    )
+    lines = [line for line in result.stdout.splitlines() if line.startswith("{")]
+    record = json.loads(lines[-1])
+    assert record["caller"] == "cloth-shop-agent"
+    assert record["decision"] == "allowed"
+    assert "prompt_sha256" in record
 
 
 def test_denied_unapproved_model():

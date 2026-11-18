@@ -11,6 +11,9 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ### Added
 
+- Public demo on Azure Container Apps: `infra/azure/demo/` deploys one Container App that scales to zero and pulls the image CI publishes to `ghcr.io` after tests pass on `main`. Container logs go to Log Analytics. See [ADR 0008](docs/adr/0008-azure-container-apps-demo.md) and [docs/azure-demo.md](docs/azure-demo.md).
+- `.env.example` with the Azure `ARM_*` credentials Terraform needs for the demo deploy, plus the optional Hugging Face token (`HF_TOKEN`); `.env` stays gitignored. Docs note that Docker Spaces on free CPU currently need Hugging Face PRO; local Docker on port 7860 is the free demo path.
+- Public demo path: `Dockerfile` serves the API on port 7860; `/` redirects to `/docs`. Ready allow and deny examples on `POST /v1/agent/act` and `POST /v1/a2a` (deny rule `target_agent_not_allowed`). README Try it section with a denied-request screenshot. See [ADR 0007](docs/adr/0007-huggingface-docker-demo.md) and [docs/hf-space.md](docs/hf-space.md).
 - Cloth-shop LLM path: `multi-cloud-retail-agent` can set `LLM_PROVIDER=gateway` so every `generate()` is `POST /v1/chat`. The README shows the audit line (caller `cloth-shop-agent`, decision, prompt hash). See [ADR 0006](docs/adr/0006-retail-agent-via-chat.md).
 - `test_cloth_shop_chat_audit_log` for that chat audit record.
 - [docs/repo-guide.md](docs/repo-guide.md): a map of the folders, the path a call takes, and which files a change updates.
@@ -22,6 +25,10 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 - Audit records for A2A tasks include `caller_agent`, `target_agent`, and the decision. The message text is stored as a SHA-256 hash.
 - Example agents are the spice shop and the clothing store. `spice-invoice-agent` may compare supplier prices and cannot delete an invoice without a person. `cloth-shop-agent` may ask `cloth-catalog-agent` to draft a caption. The catalog agent cannot read spice invoices (`target_agent_not_allowed`), and `publish_catalog` needs human approval.
 - `tests/test_a2a.py`, including `test_two_agents_one_allowed_one_blocked`.
+
+### Fixed
+
+- Audit records were dropped when the gateway ran under `uvicorn` or in a container, because the `audit` logger had no handler and Python discards `INFO` records by default. The logger now writes its JSON lines to stdout, where container log collectors such as Log Analytics pick them up.
 
 ## [0.2.0] - 2026-11-02
 

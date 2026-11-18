@@ -1,10 +1,12 @@
 import hashlib
 import json
 import logging
+import sys
 import uuid
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.a2a import (
@@ -14,11 +16,24 @@ from app.a2a import (
     invalid_json_response,
 )
 from app.agent_policy import check_agent_action, load_agent_policy
+from app.demo_examples import A2A_OPENAPI_EXAMPLES, AGENT_ACT_OPENAPI_EXAMPLES
 from app.guardrails import detect_prompt_injection, mask_pii
 from app.policy import check_model_access, load_registry
 
-app = FastAPI(title="AI Governance Gateway")
+app = FastAPI(
+    title="AI Governance Gateway",
+    description=(
+        "Rule-based gate for LLM and agent calls. No API key needed for the "
+        "policy demos. Open **POST /v1/agent/act**, pick an example "
+        "(allowed or denied: `target_agent_not_allowed`), and Execute."
+    ),
+)
 audit_log = logging.getLogger("audit")
+audit_log.setLevel(logging.INFO)
+if not audit_log.handlers:
+    _audit_handler = logging.StreamHandler(sys.stdout)
+    _audit_handler.setFormatter(logging.Formatter("%(message)s"))
+    audit_log.addHandler(_audit_handler)
 registry = load_registry()
 agent_policy = load_agent_policy()
 
@@ -79,6 +94,11 @@ def _a2a_endpoint(request: Request) -> str:
     return f"{str(request.base_url).rstrip('/')}/v1/a2a"
 
 
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/docs")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -101,7 +121,12 @@ def chat(req: ChatRequest) -> dict:
 
 
 @app.post("/v1/agent/act")
-def agent_act(req: AgentActionRequest) -> dict:
+def agent_act(
+    req: Annotated[
+        AgentActionRequest,
+        Body(openapi_examples=AGENT_ACT_OPENAPI_EXAMPLES),
+    ],
+) -> dict:
     request_id = str(uuid.uuid4())
     model = registry.get(req.model)
     model_region = model.get("region") if model else None
@@ -156,7 +181,19 @@ def a2a_agent_card(agent_id: str, request: Request) -> dict:
     return card
 
 
-@app.post("/v1/a2a")
+@app.post(
+    "/v1/a2a",
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "application/json": {
+                    "examples": A2A_OPENAPI_EXAMPLES,
+                }
+            },
+        }
+    },
+)
 async def a2a(request: Request) -> JSONResponse:
     try:
         body = await request.json()

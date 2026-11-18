@@ -6,7 +6,18 @@ One controlled entry point for LLM and agent access. Every call is checked again
 
 > Status: working skeleton. Policy, guardrails, and A2A task governance run in this process. The model call is still a stub, and `human_approved` is a declared flag, not a verified token.
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: cloth-shop LLM calls through `POST /v1/chat`.
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: public demo on Azure Container Apps (scales to zero), with the audit log in Log Analytics.
+
+## Try it
+
+No LLM key. Open **POST /v1/agent/act**, pick an example, Execute.
+
+- Live on Azure Container Apps: link added after the first deploy ([docs/azure-demo.md](docs/azure-demo.md)). The first request after idle takes a few seconds.
+- Local: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs) from the Docker image.
+
+Allowed example → HTTP 200. Denied example → HTTP 403 with rule id `target_agent_not_allowed` (control matrix C-26 / ASI07):
+
+![Denied request: HTTP 403 detail target_agent_not_allowed](docs/images/denied-request.png)
 
 ## Showcase
 
@@ -26,7 +37,7 @@ pytest
 uvicorn app.main:app --reload
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1`. The same check is `pytest tests/test_a2a.py::test_two_agents_one_allowed_one_blocked`.
+On Windows, activate with `.venv\Scripts\Activate.ps1`. Docker (the deployed image, port 7860): `docker build -t ai-governance-gateway .` then `docker run --rm -p 7860:7860 ai-governance-gateway`. The same check is `pytest tests/test_a2a.py::test_two_agents_one_allowed_one_blocked`.
 
 POST both bodies to `http://127.0.0.1:8000/v1/a2a`. The rule id is `result.task.metadata.rule`. The audit line includes `caller_agent`, `target_agent`, `decision`, and `prompt_sha256`.
 
@@ -182,7 +193,12 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `config/approved_models.yaml` | Approved model registry (example) |
 | `config/agent_policy.yaml` | Approved agents, tools, purposes, and step budget |
 | `app/` | FastAPI gateway, including A2A `POST /v1/a2a` |
-| `tests/` | Guardrail, policy, and A2A tests |
+| `Dockerfile` | Demo image on port 7860, published to `ghcr.io` by CI |
+| `infra/azure/demo/` | Terraform for the public demo on Azure Container Apps (scales to zero) |
+| `docs/azure-demo.md` | How to deploy the demo and read its audit log |
+| `docs/hf-space.md` | Hugging Face steps, kept for a PRO account (not the current host) |
+| `docs/images/` | Screenshot of a denied `/docs` request |
+| `tests/` | Guardrail, policy, A2A, and demo tests |
 | `infra/azure/` | Terraform skeleton for Azure |
 | `.github/workflows/ci.yml` | Lint + tests as a release gate |
 
@@ -197,6 +213,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 - [x] Agent/tool registration and policy enforcement (`POST /v1/agent/act`; rules in [docs/governing-rules.md](docs/governing-rules.md)). Approval tokens and a code sandbox are still open.
 - [x] A2A task governance (`POST /v1/a2a`; the cloth shop may ask its catalog agent, and the catalog agent may not read spice invoices).
 - [x] Cloth-shop LLM calls through `POST /v1/chat` (`multi-cloud-retail-agent` with `LLM_PROVIDER=gateway`; audit log in the showcase above).
+- [x] Live demo path: `Dockerfile` on 7860, `/docs` allow/deny examples, Try it + denied screenshot. Hosting on Azure Container Apps: [docs/azure-demo.md](docs/azure-demo.md).
 
 ## Disclaimer
 

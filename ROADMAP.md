@@ -5,7 +5,7 @@ Add the skill to the CV only after the item is pushed.
 
 ## Frontend showcase and hosting
 - Frontend: **TypeScript showcase.** Next.js (TypeScript) admin console in `web/` (section 2c). The FastAPI gateway stays Python; the console reads TypeScript types generated from its OpenAPI schema.
-- Demo hosting: console on Vercel (Hobby plan, free for personal projects); API on a Hugging Face Docker Space (section 2b).
+- Demo hosting: console on Vercel (Hobby plan, free for personal projects); API on Azure Container Apps with scale to zero (section 2b, ADR 0008). Hugging Face Docker Spaces now need PRO.
 - Cloud: Azure Container Apps on the consumption plan with minimum replicas 0, as in ADR 0003, so nothing is billed while idle.
 
 ## 1. Govern A2A calls (priority: medium)
@@ -21,10 +21,11 @@ Proves: the gateway works on real traffic, not just tests.
 
 ## 2b. Live demo (priority: high)
 Proves: the policy engine can be tried, not only read.
-- [ ] Add a `Dockerfile` (port 7860) and deploy to a Hugging Face Docker Space; no LLM key needed for the policy checks.
-- [ ] Open on the FastAPI `/docs` page with two ready example requests: one action allowed, one denied with the rule id from the control matrix.
-- [ ] "Try it" link and a screenshot of a denied request at the top of the README.
-Done when: a visitor sees an allow and a deny within one minute.
+- [x] Add a `Dockerfile` (port 7860); no LLM key needed for the policy checks.
+- [ ] Deploy it publicly: Azure Container Apps, scale to zero, image from `ghcr.io` ([docs/azure-demo.md](docs/azure-demo.md)).
+- [x] Open on the FastAPI `/docs` page with two ready example requests: one action allowed, one denied with the rule id from the control matrix.
+- [x] "Try it" link and a screenshot of a denied request at the top of the README.
+Done when: a visitor sees an allow and a deny within one minute (local `/docs` or the Space after publish).
 
 ## 2c. TypeScript admin console (priority: high)
 Proves: TypeScript (Next.js) in public code, and a human approval step that is enforced, not declared.
