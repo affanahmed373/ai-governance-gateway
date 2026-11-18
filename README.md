@@ -6,13 +6,13 @@ One controlled entry point for LLM and agent access. Every call is checked again
 
 > Status: working skeleton. Policy, guardrails, and A2A task governance run in this process. The model call is still a stub, and `human_approved` is a declared flag, not a verified token.
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: public demo on Azure Container Apps (scales to zero), with the audit log in Log Analytics.
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: public demo on Azure Container Apps (scales to zero), with per-client rate limits and a destroy script to stop cost.
 
 ## Try it
 
-No LLM key. Open **POST /v1/agent/act**, pick an example, Execute.
+No LLM key. Open **POST /v1/agent/act**, pick an example, Execute. The public API allows **30 requests/minute** per client and caps prompts at **4000** characters.
 
-- Live on Azure Container Apps: link added after the first deploy ([docs/azure-demo.md](docs/azure-demo.md)). The first request after idle takes a few seconds.
+- Live: [https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs](https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs) (Azure Container Apps, North Europe). First request after idle takes a few seconds. Tear down: [`scripts/destroy-azure-demo.ps1`](scripts/destroy-azure-demo.ps1) ([docs/azure-demo.md](docs/azure-demo.md)).
 - Local: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs) from the Docker image.
 
 Allowed example → HTTP 200. Denied example → HTTP 403 with rule id `target_agent_not_allowed` (control matrix C-26 / ASI07):
@@ -195,7 +195,8 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `app/` | FastAPI gateway, including A2A `POST /v1/a2a` |
 | `Dockerfile` | Demo image on port 7860, published to `ghcr.io` by CI |
 | `infra/azure/demo/` | Terraform for the public demo on Azure Container Apps (scales to zero) |
-| `docs/azure-demo.md` | How to deploy the demo and read its audit log |
+| `docs/azure-demo.md` | Deploy, abuse limits, audit log query, destroy |
+| `scripts/destroy-azure-demo.ps1` / `.sh` | Tear down the Azure demo to avoid residual cost |
 | `docs/hf-space.md` | Hugging Face steps, kept for a PRO account (not the current host) |
 | `docs/images/` | Screenshot of a denied `/docs` request |
 | `tests/` | Guardrail, policy, A2A, and demo tests |
@@ -213,7 +214,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 - [x] Agent/tool registration and policy enforcement (`POST /v1/agent/act`; rules in [docs/governing-rules.md](docs/governing-rules.md)). Approval tokens and a code sandbox are still open.
 - [x] A2A task governance (`POST /v1/a2a`; the cloth shop may ask its catalog agent, and the catalog agent may not read spice invoices).
 - [x] Cloth-shop LLM calls through `POST /v1/chat` (`multi-cloud-retail-agent` with `LLM_PROVIDER=gateway`; audit log in the showcase above).
-- [x] Live demo path: `Dockerfile` on 7860, `/docs` allow/deny examples, Try it + denied screenshot. Hosting on Azure Container Apps: [docs/azure-demo.md](docs/azure-demo.md).
+- [x] Live demo path: `Dockerfile` on 7860, `/docs` allow/deny examples, Try it + denied screenshot. Hosted on Azure Container Apps with rate limits; destroy via `scripts/destroy-azure-demo.*` ([docs/azure-demo.md](docs/azure-demo.md)).
 
 ## Disclaimer
 

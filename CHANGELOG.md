@@ -11,6 +11,8 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ### Added
 
+- Public-demo abuse limits: 30 requests/minute per client (HTTP 429), 4000-character prompt cap, Container App max 1 replica with HTTP concurrency 10. Env: `GATEWAY_RATE_LIMIT_PER_MINUTE`, `GATEWAY_MAX_PROMPT_CHARS`. See [ADR 0009](docs/adr/0009-public-demo-abuse-limits.md).
+- Destroy scripts for the Azure demo stack: `scripts/destroy-azure-demo.ps1` and `scripts/destroy-azure-demo.sh`.
 - Public demo on Azure Container Apps: `infra/azure/demo/` deploys one Container App that scales to zero and pulls the image CI publishes to `ghcr.io` after tests pass on `main`. Container logs go to Log Analytics. See [ADR 0008](docs/adr/0008-azure-container-apps-demo.md) and [docs/azure-demo.md](docs/azure-demo.md).
 - `.env.example` with the Azure `ARM_*` credentials Terraform needs for the demo deploy, plus the optional Hugging Face token (`HF_TOKEN`); `.env` stays gitignored. Docs note that Docker Spaces on free CPU currently need Hugging Face PRO; local Docker on port 7860 is the free demo path.
 - Public demo path: `Dockerfile` serves the API on port 7860; `/` redirects to `/docs`. Ready allow and deny examples on `POST /v1/agent/act` and `POST /v1/a2a` (deny rule `target_agent_not_allowed`). README Try it section with a denied-request screenshot. See [ADR 0007](docs/adr/0007-huggingface-docker-demo.md) and [docs/hf-space.md](docs/hf-space.md).

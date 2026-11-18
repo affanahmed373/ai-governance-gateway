@@ -78,7 +78,10 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 |---|---|
 | `Dockerfile` | The demo image, port 7860. CI publishes it to `ghcr.io` after tests pass on `main`. |
 | `infra/azure/demo/` | Terraform for the public demo: one Container App, scale to zero, Log Analytics. |
-| `docs/azure-demo.md` | Deploy steps, new-version rollout, and the Log Analytics audit query. |
+| `docs/azure-demo.md` | Deploy steps, abuse limits, new-version rollout, Log Analytics query, destroy. |
+| `app/rate_limit.py` | Per-client sliding-window rate limit and prompt size helpers for the public demo. |
+| `scripts/destroy-azure-demo.ps1` / `.sh` | Tear down `infra/azure/demo` so residual Azure cost stops. |
+| `docs/adr/0009-public-demo-abuse-limits.md` | Why in-app limits instead of API Management for the portfolio demo. |
 | `requirements-runtime.txt` | Packages installed in that image (no pytest/ruff). |
 | `docs/hf-space.md` | Hugging Face steps, kept for a PRO account. Not the current host. |
 | `.env.example` | Template for the Azure `ARM_*` deploy credentials and the optional `HF_TOKEN` (copy to `.env`; never commit `.env`). |

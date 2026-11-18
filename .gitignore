@@ -5,3 +5,5 @@ __pycache__/
 *.tfstate
 *.tfstate.*
 .terraform/
+tfplan
+*.tfplan

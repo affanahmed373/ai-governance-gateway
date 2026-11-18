@@ -20,7 +20,7 @@ Client -> gateway; gateway -> model provider; gateway -> data connectors (RAG st
 | Unexpected code execution | Agent runs attacker-supplied code through a tool | Code-execution tools denied until a sandbox exists | ASI05 |
 | Untrusted agent message | A spoofed peer tells the agent to act, including over A2A | Target agent must be an allowed peer | ASI07 |
 | Cascading agent actions | One bad step fans out across a long tool loop | Per-agent step budget | ASI08 |
-| Cost abuse | Runaway token usage | Quotas, budgets, alerts | — |
+| Cost abuse | Runaway token usage or open-demo scraping | Per-client rate limit, prompt size cap, max 1 replica, HTTP concurrency 10, scale to zero, destroy scripts | — |
 | Log tampering | Audit trail altered | Write-once export, restricted access | — |
 | Vendor/supply-chain risk | Model, tool, or dependency changes behavior | Version pinning, registered agents and tools, re-evaluation on change | ASI04 |
 

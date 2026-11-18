@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.a2a import (
     build_agent_card,
@@ -19,15 +19,20 @@ from app.agent_policy import check_agent_action, load_agent_policy
 from app.demo_examples import A2A_OPENAPI_EXAMPLES, AGENT_ACT_OPENAPI_EXAMPLES
 from app.guardrails import detect_prompt_injection, mask_pii
 from app.policy import check_model_access, load_registry
+from app.rate_limit import RateLimitMiddleware, max_prompt_chars
 
 app = FastAPI(
     title="AI Governance Gateway",
     description=(
         "Rule-based gate for LLM and agent calls. No API key needed for the "
         "policy demos. Open **POST /v1/agent/act**, pick an example "
-        "(allowed or denied: `target_agent_not_allowed`), and Execute."
+        "(allowed or denied: `target_agent_not_allowed`), and Execute. "
+        "Public demo: 30 requests/minute per client and a 4000-character "
+        "prompt cap (env `GATEWAY_RATE_LIMIT_PER_MINUTE`, "
+        "`GATEWAY_MAX_PROMPT_CHARS`)."
     ),
 )
+app.add_middleware(RateLimitMiddleware)
 audit_log = logging.getLogger("audit")
 audit_log.setLevel(logging.INFO)
 if not audit_log.handlers:
@@ -38,12 +43,24 @@ registry = load_registry()
 agent_policy = load_agent_policy()
 
 
+def _prompt_within_cap(value: str) -> str:
+    limit = max_prompt_chars()
+    if len(value) > limit:
+        raise ValueError(f"prompt exceeds GATEWAY_MAX_PROMPT_CHARS ({limit})")
+    return value
+
+
 class ChatRequest(BaseModel):
     model: str
     prompt: str
     environment: str = "dev"
     data_class: str = "internal"
     caller: str = "anonymous"  # TODO: derive from validated Entra ID token
+
+    @field_validator("prompt")
+    @classmethod
+    def prompt_cap(cls, value: str) -> str:
+        return _prompt_within_cap(value)
 
 
 class AgentActionRequest(BaseModel):
@@ -59,6 +76,11 @@ class AgentActionRequest(BaseModel):
     human_approved: bool = False
     step: int = 1
     target_agent: str | None = None
+
+    @field_validator("prompt")
+    @classmethod
+    def prompt_cap(cls, value: str) -> str:
+        return _prompt_within_cap(value)
 
 
 def write_audit(

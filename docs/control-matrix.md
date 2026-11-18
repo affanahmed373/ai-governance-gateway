@@ -9,12 +9,12 @@ Maps requirements to technical controls, tests and evidence. Status values: Plan
 | C-03 | Records of processing / accountability (GDPR Art. 5(2), 30) | Structured audit log per request; raw prompt is not stored | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log` | Audit logs | Partial |
 | C-04 | Human oversight (EU AI Act Art. 14) | High-impact agent tools require `human_approved` | `test_human_approval_required` | Audit logs, `config/agent_policy.yaml` | Partial |
 | C-05 | Logging and traceability (EU AI Act Art. 12) | Request IDs, model, agent, tool, purpose, and policy decision logged to stdout, collected by Log Analytics | `test_agent_audit_metadata_only`, `test_a2a_audit_records_caller_and_target`, `test_cloth_shop_chat_audit_log`, `test_audit_lines_reach_stdout` | Log Analytics `ContainerAppConsoleLogs_CL` | Partial |
-| C-06 | Robustness and cybersecurity (EU AI Act Art. 15) | Red-team suite in CI, rate limits | `test_prompt_injection_*` | CI reports | Partial |
+| C-06 | Robustness and cybersecurity (EU AI Act Art. 15) | Red-team suite in CI; per-client rate limit on the public demo | `test_prompt_injection_*`, `test_rate_limit_returns_429` | CI reports, `GATEWAY_RATE_LIMIT_PER_MINUTE` | Partial |
 | C-07 | Prompt injection (OWASP LLM01) | Input heuristics, tool allow-list, content shields | `test_prompt_injection_*` | CI reports | Partial |
 | C-08 | Sensitive information disclosure (OWASP LLM02) | PII masking in/out, output filter | `test_pii_masking` | CI reports | Partial |
 | C-09 | Supply chain (OWASP LLM03) | Approved model registry with provenance and license | `test_unapproved_model_blocked` | Registry + approval records | Partial |
 | C-10 | Excessive agency (OWASP LLM06) | Agent/tool registration and least privilege | `test_tool_not_allowed` | `config/agent_policy.yaml`, logs | Partial |
-| C-11 | Unbounded consumption (OWASP LLM10) | Quotas and cost tracking per team | Load/limit test | Usage reports | Planned |
+| C-11 | Unbounded consumption (OWASP LLM10) | Demo request and prompt caps; max 1 replica; destroy script to stop residual cost | `test_rate_limit_returns_429`, `test_oversized_prompt_rejected` | Container App env, `scripts/destroy-azure-demo.*` | Partial |
 | C-12 | Change management | ADRs, PR reviews, environment gates | CI gate | PR history, ADRs | Partial |
 | C-13 | Purpose limitation (GDPR Art. 5(1)(b)) | Declared purpose must be on the agent allow-list | `test_purpose_not_allowed` | `config/agent_policy.yaml` | Implemented |
 | C-14 | Lawful basis (GDPR Art. 6) | Non-public data requires a declared Art. 6(1) basis | `test_lawful_basis_required`, `test_a2a_applies_agent_rules` | Audit logs | Implemented |

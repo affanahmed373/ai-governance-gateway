@@ -22,7 +22,7 @@ Proves: the gateway works on real traffic, not just tests.
 ## 2b. Live demo (priority: high)
 Proves: the policy engine can be tried, not only read.
 - [x] Add a `Dockerfile` (port 7860); no LLM key needed for the policy checks.
-- [ ] Deploy it publicly: Azure Container Apps, scale to zero, image from `ghcr.io` ([docs/azure-demo.md](docs/azure-demo.md)).
+- [x] Deploy it publicly: Azure Container Apps, scale to zero, image from `ghcr.io` ([docs/azure-demo.md](docs/azure-demo.md)); abuse limits and destroy scripts ([ADR 0009](docs/adr/0009-public-demo-abuse-limits.md)).
 - [x] Open on the FastAPI `/docs` page with two ready example requests: one action allowed, one denied with the rule id from the control matrix.
 - [x] "Try it" link and a screenshot of a denied request at the top of the README.
 Done when: a visitor sees an allow and a deny within one minute (local `/docs` or the Space after publish).

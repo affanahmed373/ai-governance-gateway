@@ -4,8 +4,9 @@ variable "prefix" {
 }
 
 variable "location" {
-  type    = string
-  default = "westeurope"
+  type        = string
+  description = "Azure region. Default is northeurope; some subscriptions cannot create Log Analytics in westeurope."
+  default     = "northeurope"
 }
 
 variable "image" {

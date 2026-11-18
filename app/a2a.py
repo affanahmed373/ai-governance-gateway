@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from app.agent_policy import check_agent_action
 from app.guardrails import detect_prompt_injection, mask_pii
 from app.policy import check_model_access
+from app.rate_limit import max_prompt_chars
 
 PROTOCOL_VERSION = "1.0"
 EXTENSION_URI = "https://github.com/affanahmed373/ai-governance-gateway/a2a/governance/v1"
@@ -85,6 +86,8 @@ def handle_a2a_request(body: object, policy: dict, registry: dict) -> dict:
         fields = _governance_fields(params, params.get("metadata", {}))
     except (TypeError, ValueError):
         return _failure(req_id, _INVALID_PARAMS, "Invalid parameters")
+    if len(prompt) > max_prompt_chars():
+        return _failure(req_id, _INVALID_PARAMS, "prompt exceeds size limit")
 
     context_id = message.get("contextId")
     if not isinstance(context_id, str) or not context_id.strip():

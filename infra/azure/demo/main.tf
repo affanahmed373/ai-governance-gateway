@@ -55,12 +55,29 @@ resource "azurerm_container_app" "gateway" {
       image  = var.image
       cpu    = 0.25
       memory = "0.5Gi"
+
+      env {
+        name  = "GATEWAY_RATE_LIMIT_PER_MINUTE"
+        value = "30"
+      }
+
+      env {
+        name  = "GATEWAY_MAX_PROMPT_CHARS"
+        value = "4000"
+      }
+    }
+
+    # Cap parallel work on the single replica so a burst cannot fan out cost.
+    http_scale_rule {
+      name                = "http-concurrency"
+      concurrent_requests = "10"
     }
   }
 
   ingress {
     external_enabled = true
     target_port      = 7860
+    transport        = "http"
 
     traffic_weight {
       latest_revision = true
