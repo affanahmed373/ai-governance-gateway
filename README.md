@@ -4,16 +4,17 @@
 
 One controlled entry point for LLM and agent access. Every call is checked against an approved-model list and, for agents, against rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026. The audit log stores a hash of the prompt, not the prompt.
 
-> Status: working skeleton. Policy, guardrails, and A2A task governance run in this process. The model call is still a stub, and `human_approved` is a declared flag, not a verified token.
+> Status: working skeleton. Policy, guardrails, A2A, and a signed human-approval token path run in this process. The model call is still a stub. The TypeScript admin console lives in `web/` ([docs/admin-console.md](docs/admin-console.md)).
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: public demo on Azure Container Apps (scales to zero), with per-client rate limits and a destroy script to stop cost.
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: Next.js admin console with a real approval queue (signed tokens), plus the Azure demo that scales to zero.
 
 ## Try it
 
 No LLM key. Open **POST /v1/agent/act**, pick an example, Execute. The public API allows **30 requests/minute** per client and caps prompts at **4000** characters.
 
 - Live: [https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs](https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs) (Azure Container Apps, North Europe). First request after idle takes a few seconds. Tear down: [`scripts/destroy-azure-demo.ps1`](scripts/destroy-azure-demo.ps1) ([docs/azure-demo.md](docs/azure-demo.md)).
-- Local: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs) from the Docker image.
+- Local API: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs) from the Docker image.
+- Local admin console: `cd web && npm install && npm run dev` → [http://127.0.0.1:3000](http://127.0.0.1:3000) (API must be on :8000; see [docs/admin-console.md](docs/admin-console.md)).
 
 Allowed example → HTTP 200. Denied example → HTTP 403 with rule id `target_agent_not_allowed` (control matrix C-26 / ASI07):
 
@@ -139,7 +140,7 @@ An unapproved model returns HTTP 403 and `decision` is `denied:model_not_approve
 - **EU AI Act.** A declared prohibited purpose is denied. A consequential tool call waits for human oversight. The response names the agent and the decision.
 - **OWASP Agentic Top 10 2026 (ASI01–ASI10).** Prompt-injection check, tool allow-list, named caller, approved agents and tools only, code execution denied, memory writes need approval, peers must be allow-listed, and a step budget caps how far one action can run.
 
-The caller declares `purpose`, `lawful_basis`, and `human_approved`. This skeleton does not detect an undeclared prohibited purpose, and it does not verify a real approval token.
+The caller declares `purpose` and `lawful_basis`. High-impact tools need a signed `approval_token` from the admin queue; a bare `human_approved` flag is ignored. This skeleton does not detect an undeclared prohibited purpose.
 
 ## Why this exists
 
@@ -192,7 +193,9 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `docs/adr/` | Architecture decision records |
 | `config/approved_models.yaml` | Approved model registry (example) |
 | `config/agent_policy.yaml` | Approved agents, tools, purposes, and step budget |
-| `app/` | FastAPI gateway, including A2A `POST /v1/a2a` |
+| `app/` | FastAPI gateway, including A2A `POST /v1/a2a` and `/v1/admin/*` |
+| `web/` | Next.js admin console (approvals, audit, playground) |
+| `docs/admin-console.md` | How the console talks to the gateway, local and Vercel |
 | `Dockerfile` | Demo image on port 7860, published to `ghcr.io` by CI |
 | `infra/azure/demo/` | Terraform for the public demo on Azure Container Apps (scales to zero) |
 | `docs/azure-demo.md` | Deploy, abuse limits, audit log query, destroy |
@@ -205,7 +208,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 
 ## Roadmap
 
-- [ ] Next.js (TypeScript) admin console on Vercel: approval queue with verified approval tokens, audit log viewer, policy playground (see [ROADMAP.md](ROADMAP.md))
+- [x] Next.js (TypeScript) admin console in `web/`: approval queue with verified tokens, audit viewer, playground (Vercel deploy still open; see [docs/admin-console.md](docs/admin-console.md))
 - [ ] Real Azure OpenAI client behind the router
 - [ ] Entra ID token validation (JWT) and role mapping
 - [ ] Langfuse tracing and per-team cost reports

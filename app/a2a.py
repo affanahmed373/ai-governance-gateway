@@ -118,7 +118,7 @@ def _card(name: str, description: str, endpoint_url: str, skills: list, tenant: 
                     "description": (
                         "Governance fields on SendMessage metadata: caller_agent, tool, "
                         "model, purpose, lawful_basis, data_class, caller, "
-                        "human_approved, step."
+                        "approval_token (required for high-impact tools), step."
                     ),
                     "required": False,
                 }
@@ -163,6 +163,9 @@ def _governance_fields(params: dict, metadata: object) -> dict:
     human_approved = metadata.get("human_approved", False)
     if not isinstance(human_approved, bool):
         raise TypeError("human_approved")
+    approval_token = metadata.get("approval_token")
+    if approval_token is not None and not isinstance(approval_token, str):
+        raise TypeError("approval_token")
     target = _optional_str(params, "tenant")
     if target is None or not target.strip():
         target = _optional_str(metadata, "target_agent")
@@ -177,6 +180,7 @@ def _governance_fields(params: dict, metadata: object) -> dict:
         "data_class": _optional_str(metadata, "data_class") or "internal",
         "caller": _optional_str(metadata, "caller") or "anonymous",
         "human_approved": human_approved,
+        "approval_token": approval_token,
         "step": step,
     }
 
@@ -221,6 +225,7 @@ def _govern(
         target_agent,
         model_region,
         policy,
+        approval_token=fields.get("approval_token"),
     )
     if allowed:
         allowed, reason = check_model_access(
@@ -301,6 +306,7 @@ def _decision(
         "prompt": prompt,
         "tool": fields["tool"],
         "purpose": fields["purpose"],
+        "approval_token": fields.get("approval_token"),
         "decision": "allowed" if allowed else f"denied:{reason}",
         "rule": reason,
     }

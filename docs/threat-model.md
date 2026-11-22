@@ -16,7 +16,7 @@ Client -> gateway; gateway -> model provider; gateway -> data connectors (RAG st
 | Data leakage | PII or confidential text sent to a non-approved model, or written into agent memory | Data-class policy, PII masking, approved regions, approval before memory writes | ASI06 |
 | Unapproved model use | Team calls an unvetted model or an unapproved agent | Gateway allow-list; deny by default | ASI04, ASI10 |
 | Credential theft | API keys in code or logs; agent acts as anonymous | Managed identity, Key Vault, secret scanning in CI, named caller required | ASI03 |
-| Excessive agent permissions | Agent deletes data via a tool | Tool registration, least privilege, human approval | ASI02, ASI09 |
+| Excessive agent permissions | Agent deletes data via a tool | Tool registration, least privilege, signed approval token from the admin queue | ASI02, ASI09 |
 | Unexpected code execution | Agent runs attacker-supplied code through a tool | Code-execution tools denied until a sandbox exists | ASI05 |
 | Untrusted agent message | A spoofed peer tells the agent to act, including over A2A | Target agent must be an allowed peer | ASI07 |
 | Cascading agent actions | One bad step fans out across a long tool loop | Per-agent step budget | ASI08 |

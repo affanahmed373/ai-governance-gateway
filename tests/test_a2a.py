@@ -128,7 +128,16 @@ def test_a2a_applies_agent_rules(overrides, reason):
 
 
 def test_a2a_human_approval_allows_task():
-    task = task_of(send_message(governance(tool="publish_catalog", human_approved=True)))
+    from app.approval import issue_approval_token
+
+    meta = governance(tool="publish_catalog")
+    token = issue_approval_token(
+        agent_id=meta["caller_agent"],
+        tool="publish_catalog",
+        purpose=meta["purpose"],
+        caller=meta["caller"],
+    )["token"]
+    task = task_of(send_message(governance(tool="publish_catalog", approval_token=token)))
     assert task["status"]["state"] == "TASK_STATE_COMPLETED"
     assert task["metadata"]["rule"] == "allowed"
 

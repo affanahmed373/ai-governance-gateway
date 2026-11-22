@@ -7,3 +7,8 @@ __pycache__/
 .terraform/
 tfplan
 *.tfplan
+web/node_modules/
+web/.next/
+web/.env.local
+web/test-results/
+web/playwright-report/

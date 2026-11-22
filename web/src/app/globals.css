@@ -1,0 +1,217 @@
+:root {
+  --ink: #14201b;
+  --muted: #4a5c54;
+  --paper: #f3efe6;
+  --panel: #fffdf8;
+  --line: #d4cbb8;
+  --accent: #0f6b5c;
+  --accent-soft: #d7ebe6;
+  --deny: #8a2e2e;
+  --deny-soft: #f3d9d9;
+  --allow: #1f5b2e;
+  --allow-soft: #d9ebd9;
+  --font-display: "Fraunces", "Palatino Linotype", Palatino, serif;
+  --font-body: "Source Sans 3", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, #e7f0ec 0%, transparent 42%),
+    linear-gradient(180deg, #f7f3ea 0%, var(--paper) 55%, #ebe4d6 100%);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+main {
+  width: min(1080px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.brand span {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 0.35rem;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 1.25rem 1.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+button,
+.button {
+  appearance: none;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary,
+.button.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.45rem 0.6rem;
+  min-width: 12rem;
+}
+
+textarea {
+  width: 100%;
+  min-height: 5rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.tag.allow {
+  background: var(--allow-soft);
+  color: var(--allow);
+}
+
+.tag.deny {
+  background: var(--deny-soft);
+  color: var(--deny);
+}
+
+.tag.pending {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.check-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.check-list li {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 700px) {
+  .check-list li {
+    grid-template-columns: 1fr;
+  }
+}

@@ -23,13 +23,15 @@
 
 The public demo image listens on port 7860 and opens on `/docs` with allow/deny examples. It runs on Azure Container Apps with `min_replicas = 0`, pulls its image from `ghcr.io`, and sends stdout, including the audit JSON lines, to Log Analytics. The open demo caps clients at 30 requests/minute and 4000 prompt characters ([ADR 0009](adr/0009-public-demo-abuse-limits.md)). Decision: [ADR 0008](adr/0008-azure-container-apps-demo.md), which supersedes the Hugging Face choice in ADR 0007.
 
+The TypeScript admin console in `web/` calls the same API (approvals, audit, explain). It is meant to sit on Vercel with `GATEWAY_CORS_ORIGINS` limited to that origin. Walkthrough: [admin-console.md](admin-console.md).
+
 ## Agent action flow
 
 `POST /v1/agent/act` applies the checks in [governing-rules.md](governing-rules.md) before the model policy and input guardrails above.
 
 1. Agent is registered and approved for this environment.
 2. Purpose is allowed and not prohibited. Non-public data has a declared lawful basis and an allowed model region. `restricted` data is denied.
-3. Caller is named. The tool is allow-listed. Code execution is denied. High-impact tools need `human_approved`. The step is inside the budget. A target agent must be an allowed peer.
+3. Caller is named. The tool is allow-listed. Code execution is denied. High-impact tools need a signed `approval_token` ([ADR 0010](adr/0010-signed-approval-tokens.md)). The step is inside the budget. A target agent must be an allowed peer.
 4. Model policy and input guardrails run.
 5. The response names the agent and the decision. The audit record adds agent, tool, purpose, and rule, and still stores a prompt hash.
 

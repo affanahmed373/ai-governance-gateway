@@ -28,8 +28,10 @@ The two shop stories in the README use this path. `cloth-shop-agent` may call `c
 
 | Path | Purpose |
 |---|---|
-| `app/main.py` | The FastAPI app. Routes: `/health`, `/v1/chat`, `/v1/agent/act`, `/v1/a2a`, and the agent-card URLs. This is the front door. |
-| `app/agent_policy.py` | The agent rules, in a fixed order. Returns a reason such as `human_approval_required` or `target_agent_not_allowed`. |
+| `app/main.py` | The FastAPI app. Routes: `/health`, `/v1/chat`, `/v1/agent/act`, `/v1/a2a`, `/v1/admin/*`, and the agent-card URLs. This is the front door. |
+| `app/agent_policy.py` | The agent rules, in a fixed order. Also `explain_agent_action` for the playground checklist. |
+| `app/approval.py` | HMAC approval tokens and the in-memory pending queue. |
+| `app/audit_store.py` | Short in-memory audit ring for the console (stdout remains the durable log). |
 | `app/policy.py` | The model allow-list. Unknown or unapproved models are denied. |
 | `app/guardrails.py` | Prompt-injection patterns and PII masking. |
 | `app/a2a.py` | Agent cards and the A2A `SendMessage` task. It does not invent a second policy. It calls the checkers above. |
@@ -53,7 +55,8 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 | `tests/test_policy.py` | Model allow and deny. |
 | `tests/test_guardrails.py` | Injection detection and PII masking. |
 | `tests/test_audit.py` | A denied chat is logged without the raw prompt. |
-| `.github/workflows/ci.yml` | On every push and pull request: install dependencies, run ruff, run pytest. |
+| `tests/test_approval.py` | Deny → enqueue → approve token → retry allow; admin auth. |
+| `.github/workflows/ci.yml` | Python: ruff + pytest. Web: typecheck, Vitest, Playwright. Image publish on `main`. |
 
 ### What you read, and what a change must update
 
@@ -95,7 +98,19 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 | `infra/azure/main.tf` | A Terraform sketch: a resource group, Log Analytics, and a managed identity. It does not deploy the gateway. |
 | `infra/azure/variables.tf` | The names and location that sketch would use. |
 
-ADR 0008 puts the public demo on Azure Container Apps with scale to zero, as ADR 0003 proposed. `infra/azure/main.tf` is the larger enterprise design (Premium registry, Key Vault) and is not applied. The admin screen should be a Next.js app on Vercel (`ROADMAP.md` item 2c).
+ADR 0008 puts the public demo on Azure Container Apps with scale to zero, as ADR 0003 proposed. `infra/azure/main.tf` is the larger enterprise design (Premium registry, Key Vault) and is not applied.
+
+### Admin console (TypeScript)
+
+| Path | Purpose |
+|---|---|
+| `web/` | Next.js App Router console: approvals, audit, playground. |
+| `web/src/lib/gateway.ts` | Browser client for the FastAPI admin and act routes. |
+| `web/openapi.json` / `npm run gen:api` | OpenAPI snapshot → `src/types/api.ts`. |
+| `docs/admin-console.md` | How deny → approve → retry works, local run, Vercel env. |
+| `docs/adr/0010-signed-approval-tokens.md` | Why tokens replace the `human_approved` boolean. |
+
+ADR 0008 + ADR 0010: API on Azure, console on Vercel, approvals are signed.
 
 ## The lifecycle in one pass
 

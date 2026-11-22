@@ -29,11 +29,11 @@ Done when: a visitor sees an allow and a deny within one minute (local `/docs` o
 
 ## 2c. TypeScript admin console (priority: high)
 Proves: TypeScript (Next.js) in public code, and a human approval step that is enforced, not declared.
-- [ ] Next.js App Router + TypeScript in `web/`; API types generated from the FastAPI OpenAPI schema (`openapi-typescript`).
-- [ ] Approval queue: a reviewer approves or rejects a pending high-impact action; approval issues a signed token that `POST /v1/agent/act` verifies.
-- [ ] Audit log viewer with filters (caller, agent, rule id, decision), approved-model list, and a playground that runs an action and shows each rule's allow or deny.
-- [ ] Vitest unit tests, one Playwright test, and a CI job for type-check, lint and tests.
-- [ ] Deploy to Vercel; API base URL from an environment variable; CORS on the API allows only the Vercel domain.
+- [x] Next.js App Router + TypeScript in `web/`; API types generated from the FastAPI OpenAPI schema (`openapi-typescript`).
+- [x] Approval queue: a reviewer approves or rejects a pending high-impact action; approval issues a signed token that `POST /v1/agent/act` verifies.
+- [x] Audit log viewer with filters (caller, agent, rule id, decision), approved-model list, and a playground that runs an action and shows each rule's allow or deny.
+- [x] Vitest unit tests, one Playwright test, and a CI job for type-check, lint and tests.
+- [ ] Deploy to Vercel; API base URL from an environment variable; CORS on the API allows only the Vercel domain ([docs/admin-console.md](docs/admin-console.md)).
 Done when: on the Vercel link, an action is denied, a reviewer approves it in the queue, and the retried action passes.
 
 ## 3. OpenTelemetry audit trail (priority: medium)

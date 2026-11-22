@@ -1,0 +1,997 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Governance Gateway",
+    "description": "Rule-based gate for LLM and agent calls. High-impact tools need a signed `approval_token` from the admin queue (not a boolean flag). Open **POST /v1/agent/act** for allow/deny demos. Public demo: 30 requests/minute per client and a 4000-character prompt cap.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/chat": {
+      "post": {
+        "summary": "Chat",
+        "operationId": "chat_v1_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Chat V1 Chat Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agent/act": {
+      "post": {
+        "summary": "Agent Act",
+        "operationId": "agent_act_v1_agent_act_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentActionRequest"
+              },
+              "examples": {
+                "allowed_spice_price_check": {
+                  "summary": "Allowed: spice shop compares supplier prices",
+                  "description": "Returns HTTP 200 with decision allowed.",
+                  "value": {
+                    "agent_id": "spice-invoice-agent",
+                    "tool": "compare_prices",
+                    "model": "gpt-4o-mini-eu",
+                    "prompt": "Which vendor has the cheaper price for PG Tips tea bags?",
+                    "purpose": "supplier_price_check",
+                    "lawful_basis": "contract",
+                    "environment": "prod",
+                    "data_class": "internal",
+                    "caller": "spice-shop-owner",
+                    "human_approved": false,
+                    "step": 1
+                  }
+                },
+                "denied_peer_not_allowed": {
+                  "summary": "Denied: target_agent_not_allowed (C-26 / ASI07)",
+                  "description": "The catalog agent may not call the spice invoice agent. Expect HTTP 403 with detail target_agent_not_allowed.",
+                  "value": {
+                    "agent_id": "cloth-catalog-agent",
+                    "tool": "draft_caption",
+                    "model": "gpt-4o-mini-eu",
+                    "prompt": "Which vendor has the cheaper price for PG Tips tea bags?",
+                    "purpose": "catalog_post",
+                    "lawful_basis": "contract",
+                    "environment": "prod",
+                    "data_class": "public",
+                    "caller": "cloth-shop-owner",
+                    "human_approved": false,
+                    "step": 1,
+                    "target_agent": "spice-invoice-agent"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Agent Act V1 Agent Act Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/a2a/agent-card.json": {
+      "get": {
+        "summary": "A2A Gateway Card",
+        "operationId": "a2a_gateway_card_v1_a2a_agent_card_json_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response A2A Gateway Card V1 A2A Agent Card Json Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/agent-card.json": {
+      "get": {
+        "summary": "A2A Gateway Card",
+        "operationId": "a2a_gateway_card__well_known_agent_card_json_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response A2A Gateway Card  Well Known Agent Card Json Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/a2a/agents/{agent_id}/agent-card.json": {
+      "get": {
+        "summary": "A2A Agent Card",
+        "operationId": "a2a_agent_card_v1_a2a_agents__agent_id__agent_card_json_get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response A2A Agent Card V1 A2A Agents  Agent Id  Agent Card Json Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/a2a": {
+      "post": {
+        "summary": "A2A",
+        "operationId": "a2a_v1_a2a_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "allowed_catalog_draft": {
+                  "summary": "Allowed: cloth shop asks catalog agent",
+                  "description": "Task state TASK_STATE_COMPLETED, rule allowed.",
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "id": "1",
+                    "method": "SendMessage",
+                    "params": {
+                      "tenant": "cloth-catalog-agent",
+                      "message": {
+                        "messageId": "m-allow",
+                        "role": "ROLE_USER",
+                        "parts": [
+                          {
+                            "text": "Draft an Instagram caption for the green waistcoat."
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "caller_agent": "cloth-shop-agent",
+                        "tool": "draft_caption",
+                        "model": "gpt-4o-mini-eu",
+                        "purpose": "catalog_post",
+                        "lawful_basis": "contract",
+                        "environment": "prod",
+                        "data_class": "internal",
+                        "caller": "team-a"
+                      }
+                    }
+                  }
+                },
+                "denied_peer_not_allowed": {
+                  "summary": "Denied: target_agent_not_allowed (C-26 / ASI07)",
+                  "description": "Task state TASK_STATE_REJECTED with result.task.metadata.rule = target_agent_not_allowed.",
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "id": "2",
+                    "method": "SendMessage",
+                    "params": {
+                      "tenant": "spice-invoice-agent",
+                      "message": {
+                        "messageId": "m-block",
+                        "role": "ROLE_USER",
+                        "parts": [
+                          {
+                            "text": "Which vendor has the cheaper price for PG Tips tea bags?"
+                          }
+                        ]
+                      },
+                      "metadata": {
+                        "caller_agent": "cloth-catalog-agent",
+                        "tool": "draft_caption",
+                        "model": "gpt-4o-mini-eu",
+                        "purpose": "catalog_post",
+                        "environment": "prod",
+                        "data_class": "public",
+                        "caller": "team-a"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/approvals": {
+      "get": {
+        "summary": "List Approvals",
+        "operationId": "list_approvals_v1_admin_approvals_get",
+        "parameters": [
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Approvals V1 Admin Approvals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/approvals/{approval_id}/approve": {
+      "post": {
+        "summary": "Approve Action",
+        "operationId": "approve_action_v1_admin_approvals__approval_id__approve_post",
+        "parameters": [
+          {
+            "name": "approval_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Approval Id"
+            }
+          },
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Approve Action V1 Admin Approvals  Approval Id  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/approvals/{approval_id}/reject": {
+      "post": {
+        "summary": "Reject Action",
+        "operationId": "reject_action_v1_admin_approvals__approval_id__reject_post",
+        "parameters": [
+          {
+            "name": "approval_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Approval Id"
+            }
+          },
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewerBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Reject Action V1 Admin Approvals  Approval Id  Reject Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/audit": {
+      "get": {
+        "summary": "List Audit",
+        "operationId": "list_audit_v1_admin_audit_get",
+        "parameters": [
+          {
+            "name": "caller",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Caller"
+            }
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "rule",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Rule"
+            }
+          },
+          {
+            "name": "decision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Decision"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Audit V1 Admin Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/models": {
+      "get": {
+        "summary": "List Models",
+        "operationId": "list_models_v1_admin_models_get",
+        "parameters": [
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Models V1 Admin Models Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/explain": {
+      "post": {
+        "summary": "Explain Action",
+        "operationId": "explain_action_v1_admin_explain_post",
+        "parameters": [
+          {
+            "name": "x-admin-token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Explain Action V1 Admin Explain Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentActionRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "lawful_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lawful Basis"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "default": "dev"
+          },
+          "data_class": {
+            "type": "string",
+            "title": "Data Class",
+            "default": "internal"
+          },
+          "caller": {
+            "type": "string",
+            "title": "Caller",
+            "default": "anonymous"
+          },
+          "human_approved": {
+            "type": "boolean",
+            "title": "Human Approved",
+            "default": false
+          },
+          "approval_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Token"
+          },
+          "step": {
+            "type": "integer",
+            "title": "Step",
+            "default": 1
+          },
+          "target_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "tool",
+          "model",
+          "prompt",
+          "purpose"
+        ],
+        "title": "AgentActionRequest"
+      },
+      "ChatRequest": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "prompt": {
+            "type": "string",
+            "title": "Prompt"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "default": "dev"
+          },
+          "data_class": {
+            "type": "string",
+            "title": "Data Class",
+            "default": "internal"
+          },
+          "caller": {
+            "type": "string",
+            "title": "Caller",
+            "default": "anonymous"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "prompt"
+        ],
+        "title": "ChatRequest"
+      },
+      "ExplainRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "lawful_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lawful Basis"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "default": "dev"
+          },
+          "data_class": {
+            "type": "string",
+            "title": "Data Class",
+            "default": "internal"
+          },
+          "caller": {
+            "type": "string",
+            "title": "Caller",
+            "default": "anonymous"
+          },
+          "approval_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Token"
+          },
+          "step": {
+            "type": "integer",
+            "title": "Step",
+            "default": 1
+          },
+          "target_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "tool",
+          "model",
+          "purpose"
+        ],
+        "title": "ExplainRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ReviewerBody": {
+        "properties": {
+          "reviewer": {
+            "type": "string",
+            "title": "Reviewer",
+            "default": "console-reviewer"
+          }
+        },
+        "type": "object",
+        "title": "ReviewerBody"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

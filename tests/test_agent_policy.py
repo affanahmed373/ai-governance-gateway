@@ -102,8 +102,21 @@ def test_human_approval_required():
 
 
 def test_human_approval_allows_high_impact_tool():
-    ok, reason = decide(tool_id="delete_invoice", human_approved=True)
+    from app.approval import issue_approval_token
+
+    token = issue_approval_token(
+        agent_id="spice-invoice-agent",
+        tool="delete_invoice",
+        purpose="supplier_price_check",
+        caller="team-a",
+    )["token"]
+    ok, reason = decide(tool_id="delete_invoice", approval_token=token)
     assert ok and reason == "allowed"
+
+
+def test_human_approved_boolean_alone_is_not_enough():
+    ok, reason = decide(tool_id="delete_invoice", human_approved=True)
+    assert not ok and reason == "human_approval_required"
 
 
 def test_step_budget_exceeded():

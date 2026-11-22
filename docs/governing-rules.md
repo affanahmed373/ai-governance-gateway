@@ -2,7 +2,7 @@
 
 Rules that bind an agent action through `POST /v1/agent/act`, and an A2A task through `POST /v1/a2a`. This is a control mapping for the skeleton, not legal advice. Validate it with your own legal and security teams.
 
-The gateway decides from fields the caller declares (`purpose`, `lawful_basis`, `human_approved`, `tool`, `target_agent`). It does not detect an undeclared prohibited purpose, and it does not verify a real approval token. Both stay out of this skeleton.
+The gateway decides from fields the caller declares (`purpose`, `lawful_basis`, `tool`, `target_agent`, and for high-impact tools a signed `approval_token`). It does not detect an undeclared prohibited purpose. The boolean `human_approved` is accepted on the wire for older clients but is not trusted; see [ADR 0010](adr/0010-signed-approval-tokens.md).
 
 Config: `config/agent_policy.yaml`. Checker: `app/agent_policy.py`.
 
@@ -14,7 +14,7 @@ Config: `config/agent_policy.yaml`. Checker: `app/agent_policy.py`.
 | Art. 5(1)(c), Art. 25 | Minimise personal data, by design and by default | PII is masked before the model call. Audit stores a hash, not the prompt | — |
 | Art. 6 | Non-public processing needs a lawful basis | `data_class` other than `public` requires one of the six Art. 6(1) bases | `lawful_basis_required` |
 | Art. 9 | Special-category data needs a narrow exception | `data_class: restricted` is denied for every agent | `special_category_denied` |
-| Art. 22 | No solely automated decision with legal or similar significant effect | A tool marked `requires_human_approval` is denied unless `human_approved` is true | `human_approval_required` |
+| Art. 22 | No solely automated decision with legal or similar significant effect | A tool marked `requires_human_approval` is denied unless a valid `approval_token` is presented | `human_approval_required` |
 | Art. 30, Art. 5(2) | Keep a record of processing | Each action writes an audit record: caller, agent, tool, purpose, decision, prompt hash | — |
 | Art. 32 | Secure the processing | Same platform controls as the chat path (identity, secrets, network). Not enforced in this process | — |
 | Art. 44 | Personal data stays in an adequate transfer path | Non-public data may only go to a model in `westeurope`, `northeurope`, or `on-prem` | `region_not_allowed` |
@@ -28,7 +28,7 @@ The declared lawful bases are `consent`, `contract`, `legal_obligation`, `vital_
 | Art. 5 | Some practices are prohibited | A declared prohibited purpose is denied even if an agent lists it | `purpose_prohibited` |
 | Art. 12 | High-risk systems keep automatic logs | The audit record is the log for the action | — |
 | Art. 13, Art. 50 | People can tell that an AI system is acting and what it decided | The response includes `agent_id` and `decision` | — |
-| Art. 14 | Human oversight can stop a consequential action | Same approval gate as GDPR Art. 22. The flag is recorded, not verified | `human_approval_required` |
+| Art. 14 | Human oversight can stop a consequential action | Same approval gate as GDPR Art. 22. The admin console mints a verified token | `human_approval_required` |
 | Art. 15 | Systems must be robust against attacks | Prompt-injection check on the agent prompt, plus the tool and step limits below | `prompt_injection_detected` (HTTP 400) |
 
 Prohibited purposes in this skeleton: `social_scoring`, `untargeted_biometric_scraping`, `subliminal_manipulation`, `emotion_recognition_workplace`.
@@ -47,7 +47,7 @@ Source: [OWASP Top 10 for Agentic Applications for 2026](https://genai.owasp.org
 | ASI06 | Memory and context poisoning | `write_memory` requires human approval. Raw prompt text is not written to the audit log | `human_approval_required` |
 | ASI07 | Insecure inter-agent communication | `target_agent`, when set, must be an allowed peer | `target_agent_not_allowed` |
 | ASI08 | Cascading failures | `step` must be from 1 through the agent's `max_steps` | `step_budget_exceeded` |
-| ASI09 | Human-agent trust exploitation | High-impact tools (`delete_record`, `write_memory`) require `human_approved` | `human_approval_required` |
+| ASI09 | Human-agent trust exploitation | High-impact tools (`delete_invoice`, `write_memory`, `publish_catalog`, …) require a signed `approval_token` | `human_approval_required` |
 | ASI10 | Rogue agents | An agent whose status is not `approved` cannot act | `agent_not_approved` |
 
 ## Check order
