@@ -37,6 +37,7 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ### Fixed
 
+- CI `web` job failed to install Python deps because it looked for `../requirements.txt` from the repo root; it now installs `requirements.txt` from `${{ github.workspace }}`.
 - Audit records were dropped when the gateway ran under `uvicorn` or in a container, because the `audit` logger had no handler and Python discards `INFO` records by default. The logger now writes its JSON lines to stdout, where container log collectors such as Log Analytics pick them up.
 
 ## [0.2.0] - 2026-11-02
