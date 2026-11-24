@@ -57,7 +57,7 @@ Open http://127.0.0.1:3000. Default admin token is `dev-admin-token` (same as th
 
 1. Import this GitHub repo in Vercel; set **Root Directory** to `web`.
 2. Env: `NEXT_PUBLIC_GATEWAY_URL` = your Azure `/` base (no trailing path), `NEXT_PUBLIC_ADMIN_TOKEN` = a secret you also set on the Container App as `gateway-admin-token` (Azure secret names are lowercase + hyphens).
-3. On the gateway, set `gateway-cors-origins` to your Vercel URL, plus `gateway-approval-secret` and `gateway-admin-token`. Classic `GATEWAY_*` names still work locally.
+3. On the gateway, set `gateway-admin-token` / `gateway-approval-secret` to match Vercel. CORS allows any `https://*.vercel.app` host by default (Production + Preview); you can still narrow it with `gateway-cors-origins`.
 
 Until CORS and the admin token match, the browser will show network or 401 errors.
 

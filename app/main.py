@@ -36,19 +36,27 @@ app = FastAPI(
 )
 app.add_middleware(RateLimitMiddleware)
 
+# Origins for the admin console. Azure secret/env names are often lowercase-hyphen;
+# trailing slashes are stripped. *.vercel.app is allowed so Preview + Production
+# both work without re-editing Container App env for every deploy URL.
 _cors_raw = (
     os.getenv("gateway-cors-origins")
     or os.getenv("GATEWAY_CORS_ORIGINS")
-    or "http://localhost:3000,http://127.0.0.1:3000"
+    or (
+        "http://localhost:3000,http://127.0.0.1:3000,"
+        "https://ai-governance-gateway-psi.vercel.app"
+    )
 )
-_cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+_cors_origins = [o.strip().rstrip("/") for o in _cors_raw.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+print(f"cors_origins={_cors_origins!r} cors_regex=https://.*.vercel.app", flush=True)
 
 audit_log = logging.getLogger("audit")
 audit_log.setLevel(logging.INFO)
