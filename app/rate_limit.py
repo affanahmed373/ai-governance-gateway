@@ -25,8 +25,20 @@ EXEMPT_PREFIXES = (
 )
 
 
+def _env(*names: str, default: str) -> str:
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return default
+
+
 def rate_limit_per_minute() -> int:
-    raw = os.getenv("GATEWAY_RATE_LIMIT_PER_MINUTE", "30")
+    raw = _env(
+        "gateway-rate-limit-per-minute",
+        "GATEWAY_RATE_LIMIT_PER_MINUTE",
+        default="30",
+    )
     try:
         return max(0, int(raw))
     except ValueError:
@@ -34,7 +46,11 @@ def rate_limit_per_minute() -> int:
 
 
 def max_prompt_chars() -> int:
-    raw = os.getenv("GATEWAY_MAX_PROMPT_CHARS", "4000")
+    raw = _env(
+        "gateway-max-prompt-chars",
+        "GATEWAY_MAX_PROMPT_CHARS",
+        default="4000",
+    )
     try:
         return max(256, int(raw))
     except ValueError:

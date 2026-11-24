@@ -23,16 +23,29 @@ _DEFAULT_TTL_SECONDS = 15 * 60
 _MAX_PENDING = 100
 
 
+def _env(*names: str, default: str) -> str:
+    """Prefer Azure-safe names (lowercase + hyphens), then classic UPPER_SNAKE."""
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return default
+
+
 def approval_secret() -> str:
-    return os.getenv("GATEWAY_APPROVAL_SECRET", _DEFAULT_SECRET)
+    return _env("gateway-approval-secret", "GATEWAY_APPROVAL_SECRET", default=_DEFAULT_SECRET)
 
 
 def admin_token() -> str:
-    return os.getenv("GATEWAY_ADMIN_TOKEN", "dev-admin-token")
+    return _env("gateway-admin-token", "GATEWAY_ADMIN_TOKEN", default="dev-admin-token")
 
 
 def token_ttl_seconds() -> int:
-    raw = os.getenv("GATEWAY_APPROVAL_TTL_SECONDS", str(_DEFAULT_TTL_SECONDS))
+    raw = _env(
+        "gateway-approval-ttl-seconds",
+        "GATEWAY_APPROVAL_TTL_SECONDS",
+        default=str(_DEFAULT_TTL_SECONDS),
+    )
     try:
         return max(60, int(raw))
     except ValueError:

@@ -57,12 +57,12 @@ resource "azurerm_container_app" "gateway" {
       memory = "0.5Gi"
 
       env {
-        name  = "GATEWAY_RATE_LIMIT_PER_MINUTE"
+        name  = "gateway-rate-limit-per-minute"
         value = "30"
       }
 
       env {
-        name  = "GATEWAY_MAX_PROMPT_CHARS"
+        name  = "gateway-max-prompt-chars"
         value = "4000"
       }
     }
