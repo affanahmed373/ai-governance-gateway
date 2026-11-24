@@ -49,6 +49,13 @@ export type ExplainCheck = {
 };
 
 async function parseError(response: Response): Promise<string> {
+  if (response.status === 401) {
+    return (
+      "admin_token_required — Vercel NEXT_PUBLIC_ADMIN_TOKEN must match Azure " +
+      "gateway-admin-token (current Azure default is dev-admin-token). " +
+      "Change the Vercel env, then Redeploy Production."
+    );
+  }
   try {
     const body = await response.json();
     if (typeof body.detail === "string") return body.detail;
