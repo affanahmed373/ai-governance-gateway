@@ -14,7 +14,7 @@ A spice price check arrives at `POST /v1/agent/act`. A cloth-shop agent asking t
 | 2 | A2A only: turn the agent card or the `SendMessage` task into those same fields | `app/a2a.py` |
 | 3 | Is this agent allowed to use this tool, for this purpose, in this region, with this data? | `app/agent_policy.py` reads `config/agent_policy.yaml` |
 | 4 | Is this model approved for this environment and data class? | `app/policy.py` reads `config/approved_models.yaml` |
-| 5 | Does the text look like a prompt injection? Mask email, phone, and IBAN | `app/guardrails.py` |
+| 5 | Does the text look like a prompt injection (regex + ML)? Mask email, phone, and IBAN | `app/guardrails.py`, `app/injection_classifier.py` |
 | 6 | Record the decision and a hash of the text. Do not record the text | `write_audit` in `app/main.py` |
 | 7 | Return allow or deny. The model call is still a stub | the return value in `app/main.py` |
 
@@ -36,7 +36,10 @@ The two shop stories in the README use this path. `cloth-shop-agent` may call `c
 | `docs/opentelemetry.md` | How spans relate to the JSON audit line. |
 | `docs/adr/0011-opentelemetry-policy-spans.md` | Why spans sit beside the audit log, not instead of it. |
 | `app/policy.py` | The model allow-list. Unknown or unapproved models are denied. |
-| `app/guardrails.py` | Prompt-injection patterns and PII masking. |
+| `app/guardrails.py` | Prompt-injection patterns (OR ML) and PII masking. |
+| `app/injection_classifier.py` | Pure-Python TF-IDF + logistic regression fitted from labelled YAML. |
+| `docs/guardrails.md` | How the injection gates and env knobs work. |
+| `docs/adr/0012-ml-prompt-injection-classifier.md` | Why pure-Python classical ML beside regex, not a transformer or sklearn. |
 | `app/a2a.py` | Agent cards and the A2A `SendMessage` task. It does not invent a second policy. It calls the checkers above. |
 | `requirements.txt` | Python packages. CI installs this file. |
 
@@ -46,6 +49,7 @@ The two shop stories in the README use this path. `cloth-shop-agent` may call `c
 |---|---|
 | `config/agent_policy.yaml` | Which agents exist, what they may do, and which other agent they may call. The spice shop and the clothing store are the examples. |
 | `config/approved_models.yaml` | Which models exist, where they are hosted, and how sensitive the data may be. |
+| `config/prompt_injection_labels.yaml` | Train and eval prompts for the injection classifier. |
 
 Change the YAML to change who is allowed. Change the Python only when the check itself changes.
 
@@ -56,7 +60,7 @@ Change the YAML to change who is allowed. Change the Python only when the check 
 | `tests/test_agent_policy.py` | Each denial reason for a direct agent action, including the spice price check. |
 | `tests/test_a2a.py` | Agent cards, the cloth-shop allow, the spice-invoice deny, and the A2A audit line. |
 | `tests/test_policy.py` | Model allow and deny. |
-| `tests/test_guardrails.py` | Injection detection and PII masking. |
+| `tests/test_guardrails.py` | Injection detection (patterns + ML), precision/recall, PII masking. |
 | `tests/test_audit.py` | A denied chat is logged without the raw prompt. |
 | `tests/test_approval.py` | Deny → enqueue → approve token → retry allow; admin auth. |
 | `.github/workflows/ci.yml` | Python: ruff + pytest. Web: typecheck, Vitest, Playwright. Image publish on `main`. |

@@ -43,4 +43,6 @@ Proves: OpenTelemetry, enterprise observability.
 Done when: a denied action produces a `policy.decision` span whose `governance.rule` matches the JSON audit rule id ([docs/opentelemetry.md](docs/opentelemetry.md)).
 
 ## 4. Stronger guardrails (priority: low)
-- [ ] Add an ML-based prompt-injection classifier next to the pattern rules and report precision/recall on a small labelled set.
+Proves: classical ML next to heuristics, with measured precision/recall.
+- [x] Add an ML-based prompt-injection classifier next to the pattern rules and report precision/recall on a small labelled set.
+Done when: a paraphrase the regex misses is denied, and CI asserts precision and recall on the held-out labels ([ADR 0012](docs/adr/0012-ml-prompt-injection-classifier.md), [docs/guardrails.md](docs/guardrails.md)).

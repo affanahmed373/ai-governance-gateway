@@ -14,7 +14,7 @@
 
 1. Caller presents an Entra ID token. Gateway extracts identity, team and environment.
 2. Policy engine checks: model is approved, allowed in this environment, allowed for the data class, and hosted in an allowed region.
-3. Input guardrails: prompt-injection heuristics, PII masking.
+3. Input guardrails: prompt-injection regex heuristics plus a pure-Python TF-IDF classifier ([ADR 0012](adr/0012-ml-prompt-injection-classifier.md), [guardrails.md](guardrails.md)), then PII masking.
 4. Request is routed to the backend model.
 5. Output guardrails: PII leakage and policy checks.
 6. Audit record is written (no raw PII; hashes and metadata). The same decision also emits an OpenTelemetry `policy.decision` span ([ADR 0011](adr/0011-opentelemetry-policy-spans.md)).

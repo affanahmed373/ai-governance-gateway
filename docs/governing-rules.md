@@ -29,7 +29,7 @@ The declared lawful bases are `consent`, `contract`, `legal_obligation`, `vital_
 | Art. 12 | High-risk systems keep automatic logs | The audit record is the log for the action | — |
 | Art. 13, Art. 50 | People can tell that an AI system is acting and what it decided | The response includes `agent_id` and `decision` | — |
 | Art. 14 | Human oversight can stop a consequential action | Same approval gate as GDPR Art. 22. The admin console mints a verified token | `human_approval_required` |
-| Art. 15 | Systems must be robust against attacks | Prompt-injection check on the agent prompt, plus the tool and step limits below | `prompt_injection_detected` (HTTP 400) |
+| Art. 15 | Systems must be robust against attacks | Prompt-injection check on the agent prompt (regex heuristics plus TF-IDF classifier), plus the tool and step limits below | `prompt_injection_detected` (HTTP 400) |
 
 Prohibited purposes in this skeleton: `social_scoring`, `untargeted_biometric_scraping`, `subliminal_manipulation`, `emotion_recognition_workplace`.
 
@@ -39,7 +39,7 @@ Source: [OWASP Top 10 for Agentic Applications for 2026](https://genai.owasp.org
 
 | ID | Risk | Gateway behavior | Denial reason |
 |---|---|---|---|
-| ASI01 | Agent goal hijack | Same prompt-injection heuristics as the chat path | HTTP 400 `prompt_injection_detected` |
+| ASI01 | Agent goal hijack | Same prompt-injection gates as the chat path (regex + ML; [docs/guardrails.md](guardrails.md)) | HTTP 400 `prompt_injection_detected` |
 | ASI02 | Tool misuse | The tool must be on that agent's allow-list | `tool_not_allowed` |
 | ASI03 | Identity and privilege abuse | `caller` must be present and must not be `anonymous` | `caller_required` |
 | ASI04 | Agentic supply chain | Agent and tool must be registered. Agent `status` must be `approved` | `agent_not_registered`, `agent_not_approved`, `tool_not_registered` |
@@ -57,7 +57,7 @@ Source: [OWASP Top 10 for Agentic Applications for 2026](https://genai.owasp.org
 3. Data class is known. Non-public data has a lawful basis. `restricted` is denied. The class is within the agent's maximum.
 4. Caller is named. Tool is allow-listed and registered. Code execution is denied. High-impact tools need approval.
 5. Step is inside the budget. A target agent is an allowed peer. Non-public data uses an allowed model region.
-6. The existing model policy, prompt-injection check, and PII mask then run.
+6. The existing model policy, prompt-injection check (regex + ML), and PII mask then run.
 
 Policy denials on `POST /v1/agent/act` return HTTP 403 with the reason above. The chat path is unchanged.
 

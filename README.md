@@ -4,9 +4,9 @@
 
 One controlled entry point for LLM and agent access. Every call is checked against an approved-model list and, for agents, against rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026. The audit log stores a hash of the prompt, not the prompt.
 
-> Status: working skeleton. Policy, guardrails, A2A, signed approvals, and OpenTelemetry `policy.decision` spans run in this process. The model call is still a stub. The TypeScript admin console lives in `web/` ([docs/admin-console.md](docs/admin-console.md)).
+> Status: working skeleton. Policy, guardrails (regex + pure-Python TF-IDF injection classifier), A2A, signed approvals, and OpenTelemetry `policy.decision` spans run in this process. The model call is still a stub. The TypeScript admin console lives in `web/` ([docs/admin-console.md](docs/admin-console.md)).
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: OpenTelemetry policy spans beside the JSON audit log ([docs/opentelemetry.md](docs/opentelemetry.md)).
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: ML prompt-injection classifier beside the pattern rules ([docs/guardrails.md](docs/guardrails.md)).
 
 ## Try it
 
@@ -139,7 +139,7 @@ An unapproved model returns HTTP 403 and `decision` is `denied:model_not_approve
 
 - **GDPR.** Purpose must be on the agent's allow-list. Non-public data needs a declared lawful basis. Special-category data is denied. A high-impact tool cannot run without human approval. Personal data stays in an allowed region. The audit log stores a hash of the prompt, not the prompt.
 - **EU AI Act.** A declared prohibited purpose is denied. A consequential tool call waits for human oversight. The response names the agent and the decision.
-- **OWASP Agentic Top 10 2026 (ASI01–ASI10).** Prompt-injection check, tool allow-list, named caller, approved agents and tools only, code execution denied, memory writes need approval, peers must be allow-listed, and a step budget caps how far one action can run.
+- **OWASP Agentic Top 10 2026 (ASI01–ASI10).** Prompt-injection check (regex heuristics plus a TF-IDF classifier), tool allow-list, named caller, approved agents and tools only, code execution denied, memory writes need approval, peers must be allow-listed, and a step budget caps how far one action can run.
 
 The caller declares `purpose` and `lawful_basis`. High-impact tools need a signed `approval_token` from the admin queue; a bare `human_approved` flag is ignored. This skeleton does not detect an undeclared prohibited purpose.
 
@@ -149,7 +149,7 @@ Enterprise teams need to use LLMs without each team re-solving security, privacy
 
 - **Unified model gateway**: every model call goes through one API.
 - **Approved model list**: provenance, license, region and data-class limits per model.
-- **Guardrails**: prompt-injection detection, PII masking, output checks.
+- **Guardrails**: prompt-injection detection (regex + ML), PII masking, output checks ([docs/guardrails.md](docs/guardrails.md)).
 - **Audit and cost accountability**: structured logs per request (who, which model, which policy, what decision).
 - **Lifecycle gates**: Dev / UAT / Prod promotion rules. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 - **Traceable compliance**: the agent rules above, plus the OWASP LLM Top 10, mapped to controls, tests, and evidence.
@@ -199,6 +199,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `web/` | Next.js admin console (approvals, audit, playground) |
 | `docs/admin-console.md` | How the console talks to the gateway, local and Vercel |
 | `docs/opentelemetry.md` | Spans vs JSON audit log |
+| `docs/guardrails.md` | Regex + ML prompt-injection gates and PII masking |
 | `Dockerfile` | Demo image on port 7860, published to `ghcr.io` by CI |
 | `infra/azure/demo/` | Terraform for the public demo on Azure Container Apps (scales to zero) |
 | `docs/azure-demo.md` | Deploy, abuse limits, audit log query, destroy |
@@ -216,6 +217,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 - [ ] Entra ID token validation (JWT) and role mapping
 - [x] OpenTelemetry `policy.decision` spans with rule id (JSON audit kept; [docs/opentelemetry.md](docs/opentelemetry.md))
 - [ ] Langfuse tracing and per-team cost reports
+- [x] ML prompt-injection classifier beside pattern rules, with precision/recall on a labelled set ([docs/guardrails.md](docs/guardrails.md))
 - [ ] Red-team test suite (prompt injection, data leakage) in CI
 - [ ] Terraform: private endpoints, Log Analytics, Defender for Cloud
 - [x] Agent/tool registration and policy enforcement (`POST /v1/agent/act`; rules in [docs/governing-rules.md](docs/governing-rules.md)). Approval tokens and a code sandbox are still open.

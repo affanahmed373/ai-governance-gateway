@@ -15,6 +15,7 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ### Added
 
+- ML prompt-injection classifier (pure-Python TF-IDF + logistic regression) beside the regex heuristics. Deny when either gate fires; same `prompt_injection` rule. Held-out precision/recall asserted in CI. Opt out with `GATEWAY_INJECTION_ML=0`. See [ADR 0012](docs/adr/0012-ml-prompt-injection-classifier.md) and [docs/guardrails.md](docs/guardrails.md).
 - OpenTelemetry `policy.decision` spans on every audit write, with `governance.rule` and related attributes (no raw prompt). JSON audit lines stay the compliance record. Console exporter on by default; optional OTLP via `OTEL_EXPORTER_OTLP_ENDPOINT`. See [ADR 0011](docs/adr/0011-opentelemetry-policy-spans.md) and [docs/opentelemetry.md](docs/opentelemetry.md).
 - TypeScript admin console in `web/` (Next.js): approval queue, audit viewer, approved-model list, and policy playground. High-impact tools now need a signed `approval_token` from `POST /v1/admin/approvals/{id}/approve` instead of a declared `human_approved` flag ([ADR 0010](docs/adr/0010-signed-approval-tokens.md), [docs/admin-console.md](docs/admin-console.md)).
 - Admin API under `/v1/admin/*` (header `X-Admin-Token`): pending approvals, recent audit ring, models, and `POST /v1/admin/explain` rule checklist. CORS origins via `GATEWAY_CORS_ORIGINS`.

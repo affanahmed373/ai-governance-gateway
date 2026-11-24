@@ -1,5 +1,7 @@
 import re
 
+from app.injection_classifier import predict_injection
+
 INJECTION_PATTERNS = [
     r"ignore (all|any|previous|prior) (instructions|rules)",
     r"disregard (the )?(system|previous) prompt",
@@ -14,9 +16,16 @@ PII_PATTERNS = {
 }
 
 
-def detect_prompt_injection(text: str) -> bool:
+def pattern_prompt_injection(text: str) -> bool:
     lowered = text.lower()
     return any(re.search(p, lowered) for p in INJECTION_PATTERNS)
+
+
+def detect_prompt_injection(text: str) -> bool:
+    """True if regex heuristics or the ML classifier flag the text (ADR 0012)."""
+    if pattern_prompt_injection(text):
+        return True
+    return predict_injection(text)
 
 
 def mask_pii(text: str) -> str:

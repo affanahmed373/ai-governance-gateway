@@ -12,7 +12,7 @@ Client -> gateway; gateway -> model provider; gateway -> data connectors (RAG st
 
 | Threat | Example | Mitigation | OWASP 2026 |
 |---|---|---|---|
-| Prompt injection | Document tells the model to ignore rules and exfiltrate data | Input heuristics, content shields, tool allow-list, output checks | ASI01 |
+| Prompt injection | Document tells the model to ignore rules and exfiltrate data | Regex heuristics plus TF-IDF classifier, tool allow-list, output checks ([docs/guardrails.md](guardrails.md)) | ASI01 |
 | Data leakage | PII or confidential text sent to a non-approved model, or written into agent memory | Data-class policy, PII masking, approved regions, approval before memory writes | ASI06 |
 | Unapproved model use | Team calls an unvetted model or an unapproved agent | Gateway allow-list; deny by default | ASI04, ASI10 |
 | Credential theft | API keys in code or logs; agent acts as anonymous | Managed identity, Key Vault, secret scanning in CI, named caller required | ASI03 |
