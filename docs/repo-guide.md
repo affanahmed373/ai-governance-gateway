@@ -32,6 +32,9 @@ The two shop stories in the README use this path. `cloth-shop-agent` may call `c
 | `app/agent_policy.py` | The agent rules, in a fixed order. Also `explain_agent_action` for the playground checklist. |
 | `app/approval.py` | HMAC approval tokens and the in-memory pending queue. |
 | `app/audit_store.py` | Short in-memory audit ring for the console (stdout remains the durable log). |
+| `app/telemetry.py` | OpenTelemetry setup; `policy.decision` spans with `governance.rule`. |
+| `docs/opentelemetry.md` | How spans relate to the JSON audit line. |
+| `docs/adr/0011-opentelemetry-policy-spans.md` | Why spans sit beside the audit log, not instead of it. |
 | `app/policy.py` | The model allow-list. Unknown or unapproved models are denied. |
 | `app/guardrails.py` | Prompt-injection patterns and PII masking. |
 | `app/a2a.py` | Agent cards and the A2A `SendMessage` task. It does not invent a second policy. It calls the checkers above. |

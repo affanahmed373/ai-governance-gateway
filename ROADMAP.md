@@ -38,8 +38,9 @@ Done when: on the Vercel link, an action is denied, a reviewer approves it in th
 
 ## 3. OpenTelemetry audit trail (priority: medium)
 Proves: OpenTelemetry, enterprise observability.
-- [ ] Emit each policy decision as an OpenTelemetry span with the rule id from the control matrix.
-- [ ] Keep the JSON audit log as the compliance record.
+- [x] Emit each policy decision as an OpenTelemetry span with the rule id from the control matrix.
+- [x] Keep the JSON audit log as the compliance record.
+Done when: a denied action produces a `policy.decision` span whose `governance.rule` matches the JSON audit rule id ([docs/opentelemetry.md](docs/opentelemetry.md)).
 
 ## 4. Stronger guardrails (priority: low)
 - [ ] Add an ML-based prompt-injection classifier next to the pattern rules and report precision/recall on a small labelled set.

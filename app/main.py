@@ -24,6 +24,7 @@ from app.demo_examples import A2A_OPENAPI_EXAMPLES, AGENT_ACT_OPENAPI_EXAMPLES
 from app.guardrails import detect_prompt_injection, mask_pii
 from app.policy import check_model_access, load_registry
 from app.rate_limit import RateLimitMiddleware, max_prompt_chars
+from app.telemetry import record_policy_decision
 
 app = FastAPI(
     title="AI Governance Gateway",
@@ -165,6 +166,7 @@ def write_audit(
         record["caller_agent"] = caller_agent
     audit_log.info(json.dumps(record))
     audit_store.add(record)
+    record_policy_decision(record)
     return record
 
 

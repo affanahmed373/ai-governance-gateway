@@ -4,9 +4,9 @@
 
 One controlled entry point for LLM and agent access. Every call is checked against an approved-model list and, for agents, against rules drawn from the GDPR, the EU AI Act, and the OWASP Agentic Top 10 2026. The audit log stores a hash of the prompt, not the prompt.
 
-> Status: working skeleton. Policy, guardrails, A2A, and a signed human-approval token path run in this process. The model call is still a stub. The TypeScript admin console lives in `web/` ([docs/admin-console.md](docs/admin-console.md)).
+> Status: working skeleton. Policy, guardrails, A2A, signed approvals, and OpenTelemetry `policy.decision` spans run in this process. The model call is still a stub. The TypeScript admin console lives in `web/` ([docs/admin-console.md](docs/admin-console.md)).
 
-History: [CHANGELOG.md](CHANGELOG.md). Latest addition: Next.js admin console with a real approval queue (signed tokens), plus the Azure demo that scales to zero.
+History: [CHANGELOG.md](CHANGELOG.md). Latest addition: OpenTelemetry policy spans beside the JSON audit log ([docs/opentelemetry.md](docs/opentelemetry.md)).
 
 ## Try it
 
@@ -194,8 +194,10 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 | `config/approved_models.yaml` | Approved model registry (example) |
 | `config/agent_policy.yaml` | Approved agents, tools, purposes, and step budget |
 | `app/` | FastAPI gateway, including A2A `POST /v1/a2a` and `/v1/admin/*` |
+| `app/telemetry.py` | OpenTelemetry `policy.decision` spans |
 | `web/` | Next.js admin console (approvals, audit, playground) |
 | `docs/admin-console.md` | How the console talks to the gateway, local and Vercel |
+| `docs/opentelemetry.md` | Spans vs JSON audit log |
 | `Dockerfile` | Demo image on port 7860, published to `ghcr.io` by CI |
 | `infra/azure/demo/` | Terraform for the public demo on Azure Container Apps (scales to zero) |
 | `docs/azure-demo.md` | Deploy, abuse limits, audit log query, destroy |
@@ -211,6 +213,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/azure-mapping.md](doc
 - [x] Next.js (TypeScript) admin console in `web/`: approval queue with verified tokens, audit viewer, playground (Vercel deploy still open; see [docs/admin-console.md](docs/admin-console.md))
 - [ ] Real Azure OpenAI client behind the router
 - [ ] Entra ID token validation (JWT) and role mapping
+- [x] OpenTelemetry `policy.decision` spans with rule id (JSON audit kept; [docs/opentelemetry.md](docs/opentelemetry.md))
 - [ ] Langfuse tracing and per-team cost reports
 - [ ] Red-team test suite (prompt injection, data leakage) in CI
 - [ ] Terraform: private endpoints, Log Analytics, Defender for Cloud

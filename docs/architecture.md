@@ -17,7 +17,7 @@
 3. Input guardrails: prompt-injection heuristics, PII masking.
 4. Request is routed to the backend model.
 5. Output guardrails: PII leakage and policy checks.
-6. Audit record is written (no raw PII; hashes and metadata).
+6. Audit record is written (no raw PII; hashes and metadata). The same decision also emits an OpenTelemetry `policy.decision` span ([ADR 0011](adr/0011-opentelemetry-policy-spans.md)).
 
 `multi-cloud-retail-agent` uses this path when `LLM_PROVIDER=gateway`: every LLM `generate()` is `POST /v1/chat` with caller `cloth-shop-agent`. Decision: [ADR 0006](adr/0006-retail-agent-via-chat.md).
 
