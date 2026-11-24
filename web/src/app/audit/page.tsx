@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
+import { HowToGuide } from "@/components/HowToGuide";
 import { type AuditRecord, listAudit, listModels } from "@/lib/gateway";
 import { formatDecision } from "@/lib/format";
 
@@ -15,6 +17,7 @@ export default function AuditPage() {
   const [rule, setRule] = useState("");
   const [decision, setDecision] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     setError(null);
@@ -30,6 +33,7 @@ export default function AuditPage() {
       ]);
       setItems(audit);
       setModels(modelList);
+      setLoaded(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -37,24 +41,32 @@ export default function AuditPage() {
 
   return (
     <>
+      <HowToGuide highlight="3" />
+
       <section className="panel">
-        <h2>Audit log</h2>
+        <h2>Step 3 — Audit log</h2>
         <p className="muted">
-          Recent decisions from this gateway process (in-memory ring). Durable logs still
-          go to stdout / Log Analytics. Prompts are hashes only.
+          Recent decisions from this gateway process (in memory). After you deny then
+          approve, expect a <span className="tag deny">human_approval_required</span>{" "}
+          line and later an <span className="tag allow">allowed</span> line. Prompts are
+          hashes only. Durable logs still go to stdout / Log Analytics.
         </p>
         <div className="row">
           <input
-            placeholder="caller"
+            placeholder="filter caller"
             value={caller}
             onChange={(e) => setCaller(e.target.value)}
           />
           <input
-            placeholder="agent_id"
+            placeholder="filter agent_id"
             value={agentId}
             onChange={(e) => setAgentId(e.target.value)}
           />
-          <input placeholder="rule" value={rule} onChange={(e) => setRule(e.target.value)} />
+          <input
+            placeholder="filter rule"
+            value={rule}
+            onChange={(e) => setRule(e.target.value)}
+          />
           <input
             placeholder="decision prefix (allowed / denied)"
             value={decision}
@@ -69,8 +81,15 @@ export default function AuditPage() {
 
       <section className="panel">
         <h2>Records</h2>
-        {items.length === 0 ? (
-          <p className="muted">No rows yet. Load after running the playground.</p>
+        {!loaded ? (
+          <p className="muted">Click Load to fetch recent decisions.</p>
+        ) : items.length === 0 ? (
+          <div>
+            <p className="muted">No rows yet. Run Playground then Approvals first.</p>
+            <Link className="button secondary" href="/playground">
+              Playground
+            </Link>
+          </div>
         ) : (
           <table>
             <thead>
@@ -105,7 +124,7 @@ export default function AuditPage() {
 
       <section className="panel">
         <h2>Approved models</h2>
-        {models.length === 0 ? (
+        {!loaded ? (
           <p className="muted">Load to fetch the registry.</p>
         ) : (
           <table>

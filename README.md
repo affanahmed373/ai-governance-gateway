@@ -12,9 +12,10 @@ History: [CHANGELOG.md](CHANGELOG.md). Latest addition: OpenTelemetry policy spa
 
 No LLM key. Open **POST /v1/agent/act**, pick an example, Execute. The public API allows **30 requests/minute** per client and caps prompts at **4000** characters.
 
-- Live: [https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs](https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs) (Azure Container Apps, North Europe). First request after idle takes a few seconds. Tear down: [`scripts/destroy-azure-demo.ps1`](scripts/destroy-azure-demo.ps1) ([docs/azure-demo.md](docs/azure-demo.md)).
-- Local API: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs) from the Docker image.
-- Local admin console: `cd web && npm install && npm run dev` → [http://127.0.0.1:3000](http://127.0.0.1:3000) (API must be on :8000; see [docs/admin-console.md](docs/admin-console.md)).
+- Live API: [https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs](https://ca-aigw-gateway.whitewave-5bd369c8.northeurope.azurecontainerapps.io/docs) (Azure Container Apps). First request after idle takes a few seconds. Tear down: [`scripts/destroy-azure-demo.ps1`](scripts/destroy-azure-demo.ps1).
+- Live admin console: [https://ai-governance-gateway-psi.vercel.app](https://ai-governance-gateway-psi.vercel.app) — Playground (deny) → Approvals (approve) → Audit ([docs/admin-console.md](docs/admin-console.md)).
+- Local API: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs), or Docker on [http://127.0.0.1:7860/docs](http://127.0.0.1:7860/docs).
+- Local admin console: `cd web && npm install && npm run dev` → [http://127.0.0.1:3000](http://127.0.0.1:3000).
 
 Allowed example → HTTP 200. Denied example → HTTP 403 with rule id `target_agent_not_allowed` (control matrix C-26 / ASI07):
 

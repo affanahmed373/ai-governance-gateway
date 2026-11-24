@@ -28,10 +28,18 @@ FastAPI gateway (Azure Container Apps or uvicorn)
 
 | Route | Job |
 |---|---|
-| `/` | Explains the path in one screen |
-| `/approvals` | Pending high-impact actions; approve mints a token and retries |
-| `/audit` | Recent decisions + approved model list |
-| `/playground` | Edit an action, explain each rule, or call `/v1/agent/act` |
+| `/` | Start here: 3-step guide (Deny → Approve → Audit) |
+| `/playground` | Step 1. Pick a scenario (default: delete invoice), Run action |
+| `/approvals` | Step 2. Approve + retry (mints token) or Reject |
+| `/audit` | Step 3. Load recent deny/allow lines + model list |
+
+### Demo path (what you click)
+
+1. **Playground** → leave “Needs approval (delete invoice)” selected → **Run action** → see deny + “go to Approvals”.
+2. **Approvals** → **Refresh** if empty → **Approve + retry**.
+3. **Audit** → **Load** → deny then allow.
+
+If Approvals shows `admin_token_required`, Vercel `NEXT_PUBLIC_ADMIN_TOKEN` must match Azure `gateway-admin-token` (often `dev-admin-token`), then redeploy Vercel.
 
 ## Local run
 

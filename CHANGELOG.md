@@ -9,6 +9,10 @@ Promotion from Dev to UAT to Prod is described in [docs/architecture.md](docs/ar
 
 ## [Unreleased]
 
+### Changed
+
+- Admin console UX: numbered 3-step guide on every page, playground scenario presets (needs approval / allowed / peer denied), clearer Approvals and Audit copy with next-step links after deny or approve.
+
 ### Added
 
 - OpenTelemetry `policy.decision` spans on every audit write, with `governance.rule` and related attributes (no raw prompt). JSON audit lines stay the compliance record. Console exporter on by default; optional OTLP via `OTEL_EXPORTER_OTLP_ENDPOINT`. See [ADR 0011](docs/adr/0011-opentelemetry-policy-spans.md) and [docs/opentelemetry.md](docs/opentelemetry.md).
